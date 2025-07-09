@@ -55,6 +55,7 @@ struct Node {
 
 Node *expr();
 Node *mul();
+Node *unary();
 Node *primary();
 
 // codegen
