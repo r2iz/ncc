@@ -20,6 +20,7 @@ struct Token {
   char *str;
 };
 
+extern char *user_input;
 extern Token *token;
 
 void error(char *fmt, ...);

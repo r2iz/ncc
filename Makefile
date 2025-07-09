@@ -1,8 +1,13 @@
 CC = gcc
 CFLAGS = -std=c11 -g -static
+SRCS = main.c lexer.c
+OBJS = $(SRCS:.c=.o)
 
-ncc: main.c
-	$(CC) $(CFLAGS) -o ncc main.c
+ncc: $(OBJS)
+	$(CC) $(CFLAGS) -o ncc $(OBJS)
+
+%.o: %.c ncc.h
+	$(CC) $(CFLAGS) -c $<
 
 test: ncc
 	./test.sh
