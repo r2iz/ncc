@@ -5,19 +5,21 @@
 #include <stdlib.h>
 #include <string.h>
 
+// tokenize
+
 typedef enum {
-  TK_RESERVED,
-  TK_NUM,
-  TK_EOF,
+    TK_RESERVED,
+    TK_NUM,
+    TK_EOF,
 } TokenKind;
 
 typedef struct Token Token;
 
 struct Token {
-  TokenKind kind;
-  Token *next;
-  int val;
-  char *str;
+    TokenKind kind;
+    Token *next;
+    int val;
+    char *str;
 };
 
 extern char *user_input;
@@ -33,23 +35,28 @@ bool at_eof();
 Token *new_token(TokenKind kind, Token *cur, char *str);
 Token *tokenize(char *p);
 
+// parse
 typedef enum {
-  ND_ADD,
-  ND_SUB,
-  ND_MUL,
-  ND_DIV,
-  ND_NUM,
+    ND_ADD,
+    ND_SUB,
+    ND_MUL,
+    ND_DIV,
+    ND_NUM,
 } NodeKind;
 
 typedef struct Node Node;
 
 struct Node {
-  NodeKind kind;
-  Node *lhs;
-  Node *rhs;
-  int val;
+    NodeKind kind;
+    Node *lhs;
+    Node *rhs;
+    int val;
 };
 
 Node *expr();
 Node *mul();
 Node *primary();
+
+// codegen
+
+void gen(Node *node);
