@@ -1,6 +1,8 @@
-CFLAGS=-std=c11 -g -static
+CC = gcc
+CFLAGS = -std=c11 -g -static
 
-ncc: ncc.c
+ncc: main.c
+	$(CC) $(CFLAGS) -o ncc main.c
 
 test: ncc
 	./test.sh
