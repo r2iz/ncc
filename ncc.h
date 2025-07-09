@@ -23,6 +23,7 @@ struct Token {
 extern Token *token;
 
 void error(char *fmt, ...);
+void error_at(char *cur, char *fmt, ...);
 
 bool consume(char op);
 void expect(char op);
