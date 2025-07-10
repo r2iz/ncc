@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -std=c11 -g -static
-SRCS = main.c parse.c tokenize.c codegen.c
+SRCS = $(wildcard *.c)
 OBJS = $(SRCS:.c=.o)
 
 ncc: $(OBJS)
