@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "ncc.h"
 
 int main(int argc, char **argv) {
@@ -18,7 +16,7 @@ int main(int argc, char **argv) {
 
     gen(node);
 
-    printf("	pop rax\n");
-    printf("	ret\n");
+    printf("  pop rax\n");
+    printf("  ret\n");
     return 0;
 }
