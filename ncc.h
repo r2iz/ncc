@@ -9,6 +9,7 @@
 
 typedef enum {
     TK_RESERVED,
+    TK_IDENT,
     TK_NUM,
     TK_EOF,
 } TokenKind;
@@ -53,11 +54,14 @@ typedef struct Node Node;
 
 struct Node {
     NodeKind kind;
+    Node *next;
     Node *lhs;
     Node *rhs;
     int val;
 };
 
+Node *program();
+Node *stmt();
 Node *expr();
 Node *equality();
 Node *relational();
