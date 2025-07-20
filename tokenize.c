@@ -71,6 +71,12 @@ Token *tokenize(char *p) {
             continue;
         }
 
+        if (!strncmp(p, "return", 6)) {
+            cur = new_token(TK_RESERVED, cur, p, 6);
+            p += 6;
+            continue;
+        }
+
         if (!strncmp(p, "==", 2) || !strncmp(p, "!=", 2) ||
             !strncmp(p, "<=", 2) || !strncmp(p, ">=", 2)) {
             cur = new_token(TK_RESERVED, cur, p, 2);

@@ -10,15 +10,6 @@ int main(int argc, char **argv) {
     token = tokenize(user_input);
     Node *node = program();
 
-    printf(".intel_syntax noprefix\n");
-    printf(".globl main\n");
-    printf("main:\n");
-
-    for (Node *n = node; n; n = n->next) {
-        gen(n);
-        printf("  pop rax\n");
-    }
-
-    printf("  ret\n");
+    codegen(node);
     return 0;
 }

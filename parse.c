@@ -17,6 +17,17 @@ Node *new_node_num(int val) {
     return node;
 }
 
+Node *new_unary(NodeKind kind, Node *expr) {
+    Node *node = new_node(kind, expr, NULL);
+    return node;
+}
+
+Node *new_num(int val) {
+    Node *node = new_node(ND_NUM, NULL, NULL);
+    node->val = val;
+    return node;
+}
+
 Node *program() {
     Node head;
     head.next = NULL;
@@ -29,8 +40,13 @@ Node *program() {
     return head.next;
 }
 
-// stmt = expr ";"
 Node *stmt() {
+    if (consume("return")) {
+        Node *node = new_unary(ND_RETURN, expr());
+        expect(";");
+        return node;
+    }
+
     Node *node = expr();
     expect(";");
     return node;

@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "ncc.h"
 
 void gen(Node *node) {
@@ -46,9 +48,29 @@ void gen(Node *node) {
             printf("  setle al\n");
             printf("  movzb rax, al\n");
             break;
+        case ND_NUM:
+            printf("  push %d\n", node->val);
+            break;
+        case ND_RETURN:
+            printf("  pop rax\n");
+            printf("  ret\n");
+            break;
         default:
             error("コードを生成できません");
     }
 
     printf("  push rax\n");
+}
+
+void codegen(Node *node) {
+    printf(".intel_syntax noprefix\n");
+    printf(".global main\n");
+    printf("main:\n");
+
+    for (Node *n = node; n; n = n->next) {
+        gen(n);
+        printf("  pop rax\n");
+    }
+
+    printf("  ret\n");
 }

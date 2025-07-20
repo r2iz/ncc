@@ -39,14 +39,15 @@ Token *tokenize(char *p);
 
 // parse
 typedef enum {
-    ND_ADD,  // +
-    ND_SUB,  // -
-    ND_MUL,  // *
-    ND_DIV,  // /
-    ND_EQ,   // =
-    ND_NE,   // !=
-    ND_LT,   // <
-    ND_LE,   // <=
+    ND_ADD,     // +
+    ND_SUB,     // -
+    ND_MUL,     // *
+    ND_DIV,     // /
+    ND_EQ,      // =
+    ND_NE,      // !=
+    ND_LT,      // <
+    ND_LE,      // <=
+    ND_RETURN,  // return
     ND_NUM,
 } NodeKind;
 
@@ -58,6 +59,7 @@ struct Node {
     Node *lhs;
     Node *rhs;
     int val;
+    int offset;
 };
 
 Node *program();
@@ -73,3 +75,4 @@ Node *primary();
 // codegen
 
 void gen(Node *node);
+void codegen(Node *node);
