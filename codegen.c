@@ -8,6 +8,13 @@ void gen(Node *node) {
         return;
     }
 
+    if (node->kind == ND_RETURN) {
+        gen(node->lhs);
+        printf("  pop rax\n");
+        printf("  ret\n");
+        return;
+    }
+
     gen(node->lhs);
     gen(node->rhs);
 
@@ -50,10 +57,6 @@ void gen(Node *node) {
             break;
         case ND_NUM:
             printf("  push %d\n", node->val);
-            break;
-        case ND_RETURN:
-            printf("  pop rax\n");
-            printf("  ret\n");
             break;
         default:
             error("コードを生成できません");

@@ -1,5 +1,3 @@
-#include <string.h>
-
 #include "ncc.h"
 
 char *user_input;
@@ -27,7 +25,7 @@ void error_at(char *loc, char *fmt, ...) {
 }
 
 bool consume(char *op) {
-    if (token->kind != TK_RESERVED || strlen(op) != token->len ||
+    if (!token || token->kind != TK_RESERVED || strlen(op) != token->len ||
         memcmp(token->str, op, token->len))
         return false;
     token = token->next;
@@ -35,21 +33,22 @@ bool consume(char *op) {
 }
 
 void expect(char *op) {
-    if (token->kind != TK_RESERVED || strlen(op) != token->len ||
+    if (!token || token->kind != TK_RESERVED || strlen(op) != token->len ||
         memcmp(token->str, op, token->len)) {
-        error_at(token->str, "'%c'ではありません", op);
+        error_at(token ? token->str : user_input, "'%s'ではありません", op);
     }
     token = token->next;
 }
 
 int expect_number() {
-    if (token->kind != TK_NUM) error_at(token->str, "数ではありません");
+    if (!token || token->kind != TK_NUM)
+        error_at(token ? token->str : user_input, "数ではありません");
     int value = token->val;
     token = token->next;
     return value;
 }
 
-bool at_eof() { return token->kind == TK_EOF; }
+bool at_eof() { return !token || token->kind == TK_EOF; }
 
 Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
     Token *tok = calloc(1, sizeof(Token));
@@ -71,7 +70,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        if (!strncmp(p, "return", 6)) {
+        if (!strncmp(p, "return", 6) && !isalnum(p[6]) && p[6] != '_') {
             cur = new_token(TK_RESERVED, cur, p, 6);
             p += 6;
             continue;
@@ -85,7 +84,12 @@ Token *tokenize(char *p) {
         }
 
         if ('a' <= *p && *p <= 'z') {
-            cur = new_token(TK_IDENT, cur, p++, 1);
+            char *start = p;
+            while (('a' <= *p && *p <= 'z') || ('A' <= *p && *p <= 'Z') ||
+                   ('0' <= *p && *p <= '9') || *p == '_') {
+                p++;
+            }
+            cur = new_token(TK_IDENT, cur, start, p - start);
             continue;
         }
 
