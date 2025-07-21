@@ -1,16 +1,40 @@
 #include "ncc.h"
 
-void gen(Node *node) {
-    if (node->kind == ND_NUM) {
-        printf("  push %d\n", node->val);
+void gen_addr(Node *node) {
+    if (node->kind == ND_LVAR) {
+        printf("  mov rax, rbp\n");
+        printf("  sub rax, %d\n", node->val);
+        printf("  push rax\n");
         return;
     }
 
-    if (node->kind == ND_RETURN) {
-        gen(node->lhs);
-        printf("  pop rax\n");
-        printf("  ret\n");
-        return;
+    error("変数ではありません");
+}
+
+void gen(Node *node) {
+    switch (node->kind) {
+        case ND_NUM:
+            printf("  push %d\n", node->val);
+            return;
+        case ND_LVAR:
+            gen_addr(node);
+            printf("  mov rax, [rax]\n");
+            printf("  push rax\n");
+            return;
+        case ND_ASSIGN:
+            gen_addr(node->lhs);
+            gen(node->rhs);
+            printf("  pop rdi\n");
+            printf("  pop rax\n");
+            printf("  mov [rax], rdi\n");
+            printf("  push rdi\n");
+            return;
+        case ND_RETURN:
+            gen(node->lhs);
+            printf("  pop rax\n");
+            printf("  jmp .Lreturn\n");
+        default:
+            break;
     }
 
     gen(node->lhs);
@@ -65,10 +89,20 @@ void codegen(Node *node) {
     printf(".global main\n");
     printf("main:\n");
 
+    // prologue
+    printf("  push rbp\n");
+    printf("  mov rbp, rsp\n");
+    printf("  sub rsp, 208\n");
+
     for (Node *n = node; n; n = n->next) {
         gen(n);
         printf("  pop rax\n");
     }
+
+    // epilogue
+    printf(".Lreturn:\n");
+    printf("  mov rsp, rbp\n");
+    printf("  pop rbp\n");
 
     printf("  ret\n");
 }

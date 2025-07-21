@@ -31,6 +31,7 @@ void error(char *fmt, ...);
 void error_at(char *cur, char *fmt, ...);
 
 bool consume(char *op);
+Token *consume_ident();
 void expect(char *op);
 int expect_number();
 bool at_eof();
@@ -47,7 +48,9 @@ typedef enum {
     ND_NE,      // !=
     ND_LT,      // <
     ND_LE,      // <=
+    ND_ASSIGN,  // =
     ND_RETURN,  // return
+    ND_LVAR,    // Local variable
     ND_NUM,
 } NodeKind;
 
@@ -58,13 +61,14 @@ struct Node {
     Node *next;
     Node *lhs;
     Node *rhs;
+    char name;
     int val;
-    int offset;
 };
 
 Node *program();
 Node *stmt();
 Node *expr();
+Node *assign();
 Node *equality();
 Node *relational();
 Node *add();

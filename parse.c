@@ -28,6 +28,12 @@ Node *new_num(int val) {
     return node;
 }
 
+Node *new_lvar(char name) {
+    Node *node = new_node(ND_LVAR, NULL, NULL);
+    node->name = name;
+    return node;
+}
+
 Node *program() {
     Node head;
     head.next = NULL;
@@ -52,7 +58,16 @@ Node *stmt() {
     return node;
 }
 
-Node *expr() { return equality(); }
+Node *expr() { return assign(); }
+
+Node *assign() {
+    Node *node = equality();
+
+    if (consume("=")) {
+        node = new_node(ND_ASSIGN, node, assign());
+    }
+    return node;
+}
 
 Node *equality() {
     Node *node = relational();
@@ -129,6 +144,11 @@ Node *primary() {
         Node *node = expr();
         expect(")");
         return node;
+    }
+
+    Token *tok = consume_ident();
+    if (tok) {
+        return new_lvar(*tok->str);
     }
 
     return new_node_num(expect_number());
