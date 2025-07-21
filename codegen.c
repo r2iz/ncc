@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "ncc.h"
 
 void gen(Node *node) {
@@ -54,9 +52,6 @@ void gen(Node *node) {
             printf("  cmp rax, rdi\n");
             printf("  setle al\n");
             printf("  movzb rax, al\n");
-            break;
-        case ND_NUM:
-            printf("  push %d\n", node->val);
             break;
         default:
             error("コードを生成できません");
