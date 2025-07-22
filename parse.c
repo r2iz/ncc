@@ -222,6 +222,17 @@ Node *primary() {
 
     Token *tok = consume_ident();
     if (tok) {
+        // function call
+        if (consume("(")) {
+            expect(")");
+            Node *node = new_node(ND_FUNCALL, NULL, NULL);
+            node->func_name = malloc(tok->len + 1);
+            memcpy(node->func_name, tok->str, tok->len);
+            node->func_name[tok->len] = '\0';
+            return node;
+        }
+
+        // variable
         LVar *lvar = find_lvar(tok->str, tok->len);
         if (!lvar) {
             lvar = calloc(1, sizeof(LVar));

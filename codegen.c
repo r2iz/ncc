@@ -47,6 +47,11 @@ void gen(Node *node) {
             }
             return;
         }
+        case ND_FUNCALL: {
+            printf("  call %s\n", node->func_name);
+            printf("  push rax\n");
+            return;
+        }
         case ND_IF: {
             int l_else = label_count++;
             int l_end = label_count++;

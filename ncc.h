@@ -54,6 +54,7 @@ typedef enum {
     ND_WHILE,      // while
     ND_FOR,        // for
     ND_BLOCK,      // { ... }
+    ND_FUNCALL,    // function call
     ND_EXPR_STMT,  // expression statement
     ND_LVAR,       // Local variable
     ND_NUM,
@@ -76,6 +77,8 @@ struct Node {
     Node *inc;
 
     Node *body;
+
+    char *func_name;
 
     int val;
     int offset;
