@@ -73,6 +73,20 @@ Node *stmt() {
         return node;
     }
 
+    if (consume("{")) {
+        Node *node = new_node(ND_BLOCK, NULL, NULL);
+        Node head;
+        head.next = NULL;
+        Node *cur = &head;
+
+        while (!consume("}")) {
+            cur->next = stmt();
+            cur = cur->next;
+        }
+        node->body = head.next;
+        return node;
+    }
+
     if (consume("if")) {
         Node *node = new_node(ND_IF, NULL, NULL);
         expect("(");

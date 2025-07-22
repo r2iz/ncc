@@ -41,6 +41,12 @@ void gen(Node *node) {
             gen(node->lhs);
             printf("  pop rax\n");
             return;
+        case ND_BLOCK: {
+            for (Node *n = node->body; n; n = n->next) {
+                gen(n);
+            }
+            return;
+        }
         case ND_IF: {
             int l_else = label_count++;
             int l_end = label_count++;
