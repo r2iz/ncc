@@ -1,6 +1,25 @@
 #include "ncc.h"
 
-Node *code[100];
+typedef struct LVar LVar;
+
+struct LVar {
+    LVar *next;
+    char *name;
+    int len;
+    int offset;
+};
+
+static LVar *locals;
+static int current_offset;
+
+static LVar *find_lvar(char *name, int len) {
+    for (LVar *var = locals; var; var = var->next) {
+        if (var->len == len && !strncmp(var->name, name, len)) {
+            return var;
+        }
+    }
+    return NULL;
+}
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
     Node *node = calloc(1, sizeof(Node));
@@ -18,7 +37,9 @@ Node *new_node_num(int val) {
 }
 
 Node *new_unary(NodeKind kind, Node *expr) {
-    Node *node = new_node(kind, expr, NULL);
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = kind;
+    node->lhs = expr;
     return node;
 }
 
@@ -28,13 +49,9 @@ Node *new_num(int val) {
     return node;
 }
 
-Node *new_lvar(char name) {
-    Node *node = new_node(ND_LVAR, NULL, NULL);
-    node->name = name;
-    return node;
-}
-
 Node *program() {
+    locals = NULL;
+    current_offset = 0;
     Node head;
     head.next = NULL;
     Node *cur = &head;
@@ -53,7 +70,7 @@ Node *stmt() {
         return node;
     }
 
-    Node *node = expr();
+    Node *node = new_unary(ND_EXPR_STMT, expr());
     expect(";");
     return node;
 }
@@ -148,7 +165,19 @@ Node *primary() {
 
     Token *tok = consume_ident();
     if (tok) {
-        return new_lvar(*tok->str);
+        LVar *lvar = find_lvar(tok->str, tok->len);
+        if (!lvar) {
+            lvar = calloc(1, sizeof(LVar));
+            lvar->name = tok->str;
+            lvar->len = tok->len;
+            current_offset += 8;
+            lvar->offset = current_offset;
+            lvar->next = locals;
+            locals = lvar;
+        }
+        Node *node = new_node(ND_LVAR, NULL, NULL);
+        node->offset = lvar->offset;
+        return node;
     }
 
     return new_node_num(expect_number());

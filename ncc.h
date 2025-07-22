@@ -40,17 +40,18 @@ Token *tokenize(char *p);
 
 // parse
 typedef enum {
-    ND_ADD,     // +
-    ND_SUB,     // -
-    ND_MUL,     // *
-    ND_DIV,     // /
-    ND_EQ,      // =
-    ND_NE,      // !=
-    ND_LT,      // <
-    ND_LE,      // <=
-    ND_ASSIGN,  // =
-    ND_RETURN,  // return
-    ND_LVAR,    // Local variable
+    ND_ADD,        // +
+    ND_SUB,        // -
+    ND_MUL,        // *
+    ND_DIV,        // /
+    ND_EQ,         // =
+    ND_NE,         // !=
+    ND_LT,         // <
+    ND_LE,         // <=
+    ND_ASSIGN,     // =
+    ND_RETURN,     // return
+    ND_EXPR_STMT,  // expression statement
+    ND_LVAR,       // Local variable
     ND_NUM,
 } NodeKind;
 
@@ -61,8 +62,8 @@ struct Node {
     Node *next;
     Node *lhs;
     Node *rhs;
-    char name;
     int val;
+    int offset;
 };
 
 Node *program();

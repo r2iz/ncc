@@ -3,7 +3,7 @@
 void gen_addr(Node *node) {
     if (node->kind == ND_LVAR) {
         printf("  mov rax, rbp\n");
-        printf("  sub rax, %d\n", node->val);
+        printf("  sub rax, %d\n", node->offset);
         printf("  push rax\n");
         return;
     }
@@ -18,6 +18,7 @@ void gen(Node *node) {
             return;
         case ND_LVAR:
             gen_addr(node);
+            printf("  pop rax\n");
             printf("  mov rax, [rax]\n");
             printf("  push rax\n");
             return;
@@ -33,6 +34,11 @@ void gen(Node *node) {
             gen(node->lhs);
             printf("  pop rax\n");
             printf("  jmp .Lreturn\n");
+            return;
+        case ND_EXPR_STMT:
+            gen(node->lhs);
+            printf("  pop rax\n");
+            return;
         default:
             break;
     }
@@ -96,7 +102,6 @@ void codegen(Node *node) {
 
     for (Node *n = node; n; n = n->next) {
         gen(n);
-        printf("  pop rax\n");
     }
 
     // epilogue
