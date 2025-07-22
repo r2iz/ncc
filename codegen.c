@@ -1,5 +1,7 @@
 #include "ncc.h"
 
+static int label_count = 0;
+
 void gen_addr(Node *node) {
     if (node->kind == ND_LVAR) {
         printf("  mov rax, rbp\n");
@@ -39,6 +41,61 @@ void gen(Node *node) {
             gen(node->lhs);
             printf("  pop rax\n");
             return;
+        case ND_IF: {
+            int l_else = label_count++;
+            int l_end = label_count++;
+            gen(node->cond);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je .Lelse%d\n", l_else);
+            if (node->then) {
+                gen(node->then);
+            }
+            printf("  jmp .Lend%d\n", l_end);
+            printf(".Lelse%d:\n", l_else);
+            if (node->els) {
+                gen(node->els);
+            }
+            printf(".Lend%d:\n", l_end);
+        }
+        case ND_WHILE: {
+            int l_begin = label_count++;
+            int l_end = label_count++;
+            printf(".Lbegin%d:\n", l_begin);
+            gen(node->cond);
+            printf("  pop rax\n");
+            printf("  cmp rax, 0\n");
+            printf("  je .Lend%d\n", l_end);
+            if (node->then) {
+                gen(node->then);
+            }
+            printf("  jmp .Lbegin%d\n", l_begin);
+            printf(".Lend%d:\n", l_end);
+            return;
+        }
+        case ND_FOR: {
+            int l_begin = label_count++;
+            int l_end = label_count++;
+            if (node->init) {
+                gen(node->init);
+            }
+            printf(".Lbegin%d:\n", l_begin);
+            if (node->cond) {
+                gen(node->cond);
+                printf("  pop rax\n");
+                printf("  cmp rax, 0\n");
+                printf("  je .Lend%d\n", l_end);
+            }
+            if (node->then) {
+                gen(node->then);
+            }
+            if (node->inc) {
+                gen(node->inc);
+            }
+            printf("  jmp .Lbegin%d\n", l_begin);
+            printf(".Lend%d:\n", l_end);
+            return;
+        }
         default:
             break;
     }

@@ -50,6 +50,9 @@ typedef enum {
     ND_LE,         // <=
     ND_ASSIGN,     // =
     ND_RETURN,     // return
+    ND_IF,         // if
+    ND_WHILE,      // while
+    ND_FOR,        // for
     ND_EXPR_STMT,  // expression statement
     ND_LVAR,       // Local variable
     ND_NUM,
@@ -64,6 +67,13 @@ struct Node {
     Node *next;
     Node *lhs;
     Node *rhs;
+
+    Node *cond;
+    Node *then;
+    Node *els;
+    Node *init;
+    Node *inc;
+
     int val;
     int offset;
 };

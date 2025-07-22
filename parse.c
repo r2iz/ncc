@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <string.h>
+
 #include "ncc.h"
 
 typedef struct LVar LVar;
@@ -67,6 +70,44 @@ Node *stmt() {
     if (consume("return")) {
         Node *node = new_unary(ND_RETURN, expr());
         expect(";");
+        return node;
+    }
+
+    if (consume("if")) {
+        Node *node = new_node(ND_IF, expr(), NULL);
+        expect("then");
+        node->then = stmt();
+        if (consume("else")) {
+            node->els = stmt();
+        }
+        return node;
+    }
+
+    if (consume("while")) {
+        Node *node = new_node(ND_WHILE, NULL, NULL);
+        expect("(");
+        node->cond = expr();
+        expect(")");
+        node->then = stmt();
+        return node;
+    }
+
+    if (consume("for")) {
+        Node *node = new_node(ND_FOR, NULL, NULL);
+        expect("(");
+        if (!consume(";")) {
+            node->init = expr();
+            expect(";");
+        }
+        if (!consume(";")) {
+            node->cond = expr();
+            expect(";");
+        }
+        if (!consume(")")) {
+            node->inc = expr();
+            expect(")");
+        }
+        node->then = stmt();
         return node;
     }
 

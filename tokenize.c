@@ -66,6 +66,11 @@ Token *new_token(TokenKind kind, Token *cur, char *str, int len) {
     return tok;
 }
 
+static bool is_alnum(char c) {
+    return ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') ||
+           ('0' <= c && c <= '9') || c == '_';
+}
+
 Token *tokenize(char *p) {
     Token head;
     head.next = NULL;
@@ -77,9 +82,19 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        if (!strncmp(p, "return", 6) && !isalnum(p[6]) && p[6] != '_') {
-            cur = new_token(TK_RESERVED, cur, p, 6);
-            p += 6;
+        char *keywords[] = {"if", "else", "while", "for", "return"};
+        int keyword_len = sizeof(keywords) / sizeof(*keywords);
+        bool is_keyword = false;
+        for (int i = 0; i < keyword_len; i++) {
+            int len = strlen(keywords[i]);
+            if (!strncmp(p, keywords[i], len) && !is_alnum(p[len])) {
+                cur = new_token(TK_RESERVED, cur, p, len);
+                p += len;
+                is_keyword = true;
+                break;
+            }
+        }
+        if (is_keyword) {
             continue;
         }
 
@@ -92,8 +107,7 @@ Token *tokenize(char *p) {
 
         if ('a' <= *p && *p <= 'z') {
             char *start = p;
-            while (('a' <= *p && *p <= 'z') || ('A' <= *p && *p <= 'Z') ||
-                   ('0' <= *p && *p <= '9') || *p == '_') {
+            while (is_alnum(*p)) {
                 p++;
             }
             cur = new_token(TK_IDENT, cur, start, p - start);
