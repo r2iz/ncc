@@ -98,7 +98,7 @@ void codegen(Node *node) {
     // prologue
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
-    printf("  sub rsp, 208\n");
+    printf("  sub rsp, %d\n", current_offset);
 
     for (Node *n = node; n; n = n->next) {
         gen(n);

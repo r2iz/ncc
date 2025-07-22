@@ -57,6 +57,8 @@ typedef enum {
 
 typedef struct Node Node;
 
+extern int current_offset;
+
 struct Node {
     NodeKind kind;
     Node *next;

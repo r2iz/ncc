@@ -10,7 +10,7 @@ struct LVar {
 };
 
 static LVar *locals;
-static int current_offset;
+int current_offset;
 
 static LVar *find_lvar(char *name, int len) {
     for (LVar *var = locals; var; var = var->next) {
