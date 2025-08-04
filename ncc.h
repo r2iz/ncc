@@ -79,6 +79,8 @@ struct Node {
     Node *body;
 
     char *func_name;
+    Node *args[6];
+    int argc;
 
     int val;
     int offset;

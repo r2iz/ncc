@@ -48,6 +48,13 @@ void gen(Node *node) {
             return;
         }
         case ND_FUNCALL: {
+            for (int i = node->argc - 1; i >= 0; i--) {
+                gen(node->args[i]);
+            }
+            const char *arg_regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+            for (int i = 0; i < node->argc; i++) {
+                printf("  pop %s\n", arg_regs[i]);
+            }
             printf("  call %s\n", node->func_name);
             printf("  push rax\n");
             return;

@@ -2,6 +2,7 @@
 cat <<EOF | gcc -xc -c -o tmp2.o -
 int ret3() { return 3; }
 int ret5() { return 5; }
+int retsum(int x, int y) { return x + y; }
 EOF
 
 assert() {
@@ -76,5 +77,6 @@ assert 3 'for (;;) return 3; return 5;'
 
 assert 3 'return ret3();'
 assert 5 'return ret5();'
+assert 8 'return retsum(3, 5);'
 
 echo OK

@@ -221,11 +221,19 @@ Node *primary() {
     if (tok) {
         // function call
         if (consume("(")) {
-            expect(")");
             Node *node = new_node(ND_FUNCALL, NULL, NULL);
             node->func_name = malloc(tok->len + 1);
             memcpy(node->func_name, tok->str, tok->len);
             node->func_name[tok->len] = '\0';
+            node->argc = 0;
+            if (!consume(")")) {
+                do {
+                    if (node->argc >= 6)
+                        error_at(tok->str, "引数は最大6つまでです");
+                    node->args[node->argc++] = expr();
+                } while (consume(","));
+                expect(")");
+            }
             return node;
         }
 
