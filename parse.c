@@ -57,6 +57,71 @@ Node *program() {
     Node *cur = &head;
 
     while (!at_eof()) {
+        // lookahead
+        Token *saved_token = token;
+        Token *tok = consume_ident();
+        if (tok && consume("(")) {
+            // function definition
+            Node *func = calloc(1, sizeof(Node));
+            func->kind = ND_FUNCDEF;
+            func->func_name = malloc(tok->len + 1);
+            memcpy(func->func_name, tok->str, tok->len);
+            func->func_name[tok->len] = '\0';
+            func->paramc = 0;
+
+            if (!consume(")")) {
+                do {
+                    if (func->paramc >= 6) {
+                        error_at(tok->str, "引数は最大6つまでです");
+                    }
+                    if (!consume("int")) {
+                        error_at(token->str, "引数の型が必要です");
+                    }
+                    Token *param_tok = consume_ident();
+                    if (!param_tok) {
+                        error_at(token->str, "引数名が必要です");
+                    }
+
+                    LVar *lvar = calloc(1, sizeof(LVar));
+                    lvar->name = param_tok->str;
+                    lvar->len = param_tok->len;
+                    current_offset += 8;
+                    lvar->offset = current_offset;
+                    lvar->next = locals;
+                    locals = lvar;
+
+                    func->paramc++;
+                } while (consume(","));
+                expect(")");
+            }
+
+            expect("{");
+            // 関数定義開始時のcurrent_offsetを保存
+            int func_offset = current_offset;
+
+            Node head2;
+            head2.next = NULL;
+            Node *cur2 = &head2;
+
+            while (!consume("}")) {
+                cur2->next = stmt();
+                cur2 = cur2->next;
+            }
+            func->func_body = head2.next;
+
+            // 関数のローカル変数領域サイズを保存
+            func->offset = current_offset;
+
+            cur->next = func;
+            cur = cur->next;
+
+            locals = NULL;
+            current_offset = 0;
+            continue;
+        } else {
+            token = saved_token;
+        }
+
         cur->next = stmt();
         cur = cur->next;
     }

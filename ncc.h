@@ -55,6 +55,7 @@ typedef enum {
     ND_FOR,        // for
     ND_BLOCK,      // { ... }
     ND_FUNCALL,    // function call
+    ND_FUNCDEF,    // function definition
     ND_EXPR_STMT,  // expression statement
     ND_LVAR,       // Local variable
     ND_ADDR,       // &
@@ -84,6 +85,9 @@ struct Node {
     char *func_name;
     Node *args[6];
     int argc;
+    // 関数定義用
+    int paramc;
+    Node *func_body;
 
     int val;
     int offset;

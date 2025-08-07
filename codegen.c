@@ -1,6 +1,7 @@
 #include "ncc.h"
 
 static int label_count = 0;
+static bool in_function = false;  // 関数定義内かどうか
 
 void gen_addr(Node *node) {
     if (node->kind == ND_LVAR) {
@@ -19,6 +20,37 @@ void gen_addr(Node *node) {
 
 void gen(Node *node) {
     switch (node->kind) {
+        case ND_FUNCDEF: {
+            printf(".global %s\n", node->func_name);
+            printf("%s:\n", node->func_name);
+            // prologue
+            printf("  push rbp\n");
+            printf("  mov rbp, rsp\n");
+            printf("  sub rsp, %d\n", node->offset);
+
+            // arg
+            const char *arg_regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+            for (int i = 0; i < node->paramc; i++) {
+                printf("  mov rax, rbp\n");
+                printf("  sub rax, %d\n", 8 * (i + 1));
+                printf("  mov [rax], %s\n", arg_regs[i]);
+            }
+
+            bool prev_in_function = in_function;
+            in_function = true;
+
+            for (Node *n = node->func_body; n; n = n->next) {
+                gen(n);
+            }
+
+            in_function = prev_in_function;
+
+            // epilogue
+            printf("  mov rsp, rbp\n");
+            printf("  pop rbp\n");
+            printf("  ret\n");
+            return;
+        }
         case ND_NUM:
             printf("  push %d\n", node->val);
             return;
@@ -39,7 +71,14 @@ void gen(Node *node) {
         case ND_RETURN:
             gen(node->lhs);
             printf("  pop rax\n");
-            printf("  jmp .Lreturn\n");
+            if (in_function) {
+                printf("  mov rsp, rbp\n");
+                printf("  pop rbp\n");
+                printf("  ret\n");
+            } else {
+                // mainなら飛ぶ！
+                printf("  jmp .Lreturn\n");
+            }
             return;
         case ND_ADDR:
             gen_addr(node->lhs);
@@ -183,22 +222,40 @@ void gen(Node *node) {
 
 void codegen(Node *node) {
     printf(".intel_syntax noprefix\n");
-    printf(".global main\n");
-    printf("main:\n");
 
-    // prologue
-    printf("  push rbp\n");
-    printf("  mov rbp, rsp\n");
-    printf("  sub rsp, %d\n", current_offset);
+    Node *main_statements = NULL;
 
     for (Node *n = node; n; n = n->next) {
-        gen(n);
+        if (n->kind == ND_FUNCDEF) {
+            gen(n);
+        } else {
+            // main
+            if (!main_statements) {
+                main_statements = n;
+            }
+        }
     }
 
-    // epilogue
-    printf(".Lreturn:\n");
-    printf("  mov rsp, rbp\n");
-    printf("  pop rbp\n");
+    // main
+    if (main_statements) {
+        printf(".global main\n");
+        printf("main:\n");
 
-    printf("  ret\n");
+        // prologue
+        printf("  push rbp\n");
+        printf("  mov rbp, rsp\n");
+        printf("  sub rsp, %d\n", current_offset);
+
+        for (Node *n = main_statements; n; n = n->next) {
+            if (n->kind != ND_FUNCDEF) {
+                gen(n);
+            }
+        }
+
+        // epilogue
+        printf(".Lreturn:\n");
+        printf("  mov rsp, rbp\n");
+        printf("  pop rbp\n");
+        printf("  ret\n");
+    }
 }
