@@ -1,88 +1,81 @@
 #include "ncc.h"
 
-Type *int_type() {
-    Type *type = calloc(1, sizeof(Type));
-    type->kind = TY_INT;
-    type->size = 8;
-    return type;
-}
-
-Type *pointer_to(Type *base) {
-    Type *type = calloc(1, sizeof(Type));
-    type->kind = TY_PTR;
-    type->ptr_to = base;
-    type->size = 8;
-    return type;
-}
-
-int size_of(Type *type) { return type->size; }
-
-typedef struct LVar LVar;
-
-struct LVar {
-    LVar *next;
-    char *name;
-    int len;
-    int offset;
-    Type *type;
-};
-
-static LVar *locals;
-int current_offset;
-
-Type *parse_type() {
-    if (!consume("int")) {
-        error_at(token->str, "型が必要です");
+static Node *parse_function_definition(Token *name_token) {
+    Token *tok = consume_ident();
+    if (!tok) {
+        error_at(token->str, "関数名が必要です");
     }
-    Type *type = int_type();
+    expect("(");
 
-    while (consume("*")) {
-        type = pointer_to(type);
+    Node *func = calloc(1, sizeof(Node));
+    func->kind = ND_FUNCDEF;
+    func->func_name = strndup_safe(tok->str, tok->len);
+    func->paramc = 0;
+
+    if (!consume(")")) {
+        do {
+            if (func->paramc >= 6) {
+                error_at(tok->str, "引数は最大6つまでです");
+            }
+            Type *param_type = parse_type();
+            Token *param_tok = consume_ident();
+            if (!param_tok) {
+                error_at(token->str, "引数名が必要です");
+            }
+
+            create_lvar(param_tok->str, param_tok->len, param_type);
+            func->paramc++;
+        } while (consume(","));
+        expect(")");
     }
 
-    return type;
-}
+    expect("{");
 
-static LVar *find_lvar(char *name, int len) {
-    for (LVar *var = locals; var; var = var->next) {
-        if (var->len == len && !strncmp(var->name, name, len)) {
-            return var;
-        }
+    Node head;
+    head.next = NULL;
+    Node *cur = &head;
+
+    while (!consume("}")) {
+        cur->next = stmt();
+        cur = cur->next;
     }
-    return NULL;
+    func->func_body = head.next;
+    func->offset = get_current_offset();
+
+    return func;
 }
 
-Node *new_node(NodeKind kind, Node *lhs, Node *rhs) {
-    Node *node = calloc(1, sizeof(Node));
-    node->kind = kind;
-    node->lhs = lhs;
-    node->rhs = rhs;
+static Node *parse_function_call(Token *name_token) {
+    Node *node = new_node(ND_FUNCALL, NULL, NULL);
+    node->func_name = strndup_safe(name_token->str, name_token->len);
+    node->argc = 0;
+
+    if (!consume(")")) {
+        do {
+            if (node->argc >= 6) {
+                error_at(name_token->str, "引数は最大6つまでです");
+            }
+            node->args[node->argc++] = expr();
+        } while (consume(","));
+        expect(")");
+    }
     return node;
 }
 
-Node *new_node_num(int val) {
-    Node *node = calloc(1, sizeof(Node));
-    node->kind = ND_NUM;
-    node->val = val;
-    return node;
-}
+static Node *parse_variable_declaration() {
+    Type *type = parse_type();
+    Token *tok = consume_ident();
+    if (!tok) {
+        error_at(token->str, "変数名が必要です");
+    }
 
-Node *new_unary(NodeKind kind, Node *expr) {
-    Node *node = calloc(1, sizeof(Node));
-    node->kind = kind;
-    node->lhs = expr;
-    return node;
-}
-
-Node *new_num(int val) {
-    Node *node = new_node(ND_NUM, NULL, NULL);
-    node->val = val;
-    return node;
+    create_lvar(tok->str, tok->len, type);
+    expect(";");
+    return new_node(ND_VAR_DECL, NULL, NULL);
 }
 
 Node *program() {
-    locals = NULL;
-    current_offset = 0;
+    clear_locals();
     Node head;
     head.next = NULL;
     Node *cur = &head;
@@ -93,60 +86,10 @@ Node *program() {
         Token *tok = consume_ident();
         if (tok && consume("(")) {
             // function definition
-            Node *func = calloc(1, sizeof(Node));
-            func->kind = ND_FUNCDEF;
-            func->func_name = malloc(tok->len + 1);
-            memcpy(func->func_name, tok->str, tok->len);
-            func->func_name[tok->len] = '\0';
-            func->paramc = 0;
-
-            if (!consume(")")) {
-                do {
-                    if (func->paramc >= 6) {
-                        error_at(tok->str, "引数は最大6つまでです");
-                    }
-                    Type *param_type = parse_type();
-                    Token *param_tok = consume_ident();
-                    if (!param_tok) {
-                        error_at(token->str, "引数名が必要です");
-                    }
-
-                    LVar *lvar = calloc(1, sizeof(LVar));
-                    lvar->name = param_tok->str;
-                    lvar->len = param_tok->len;
-                    lvar->type = param_type;
-                    current_offset += size_of(param_type);
-                    lvar->offset = current_offset;
-                    lvar->next = locals;
-                    locals = lvar;
-
-                    func->paramc++;
-                } while (consume(","));
-                expect(")");
-            }
-
-            expect("{");
-            // 関数定義開始時のcurrent_offsetを保存
-            int func_offset = current_offset;
-
-            Node head2;
-            head2.next = NULL;
-            Node *cur2 = &head2;
-
-            while (!consume("}")) {
-                cur2->next = stmt();
-                cur2 = cur2->next;
-            }
-            func->func_body = head2.next;
-
-            // 関数のローカル変数領域サイズを保存
-            func->offset = current_offset;
-
-            cur->next = func;
+            token = saved_token;
+            cur->next = parse_function_definition(tok);
             cur = cur->next;
-
-            locals = NULL;
-            current_offset = 0;
+            clear_locals();
             continue;
         } else {
             token = saved_token;
@@ -161,21 +104,7 @@ Node *program() {
 Node *stmt() {
     if (token && token->kind == TK_RESERVED && token->len == 3 &&
         !strncmp(token->str, "int", 3)) {
-        Type *type = parse_type();
-        Token *tok = consume_ident();
-        if (!tok) error_at(token->str, "変数名が必要です");
-
-        LVar *lvar = calloc(1, sizeof(LVar));
-        lvar->name = tok->str;
-        lvar->len = tok->len;
-        lvar->type = type;
-        current_offset += size_of(type);
-        lvar->offset = current_offset;
-        lvar->next = locals;
-        locals = lvar;
-
-        expect(";");
-        return new_node(ND_VAR_DECL, NULL, NULL);
+        return parse_variable_declaration();
     }
 
     if (consume("return")) {
@@ -341,32 +270,15 @@ Node *primary() {
     if (tok) {
         // function call
         if (consume("(")) {
-            Node *node = new_node(ND_FUNCALL, NULL, NULL);
-            node->func_name = malloc(tok->len + 1);
-            memcpy(node->func_name, tok->str, tok->len);
-            node->func_name[tok->len] = '\0';
-            node->argc = 0;
-            if (!consume(")")) {
-                do {
-                    if (node->argc >= 6)
-                        error_at(tok->str, "引数は最大6つまでです");
-                    node->args[node->argc++] = expr();
-                } while (consume(","));
-                expect(")");
-            }
-            return node;
+            return parse_function_call(tok);
         }
 
-        // variable
+        // local variable
         LVar *lvar = find_lvar(tok->str, tok->len);
         if (!lvar) {
             error_at(tok->str, "宣言されていない変数です");
         }
-        Node *node = new_node(ND_LVAR, NULL, NULL);
-        // Typeも！
-        node->type = lvar->type;
-        node->offset = lvar->offset;
-        return node;
+        return new_lvar_node(lvar);
     }
 
     return new_node_num(expect_number());

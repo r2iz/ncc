@@ -22,6 +22,24 @@ struct Type {
 Type *int_type();
 Type *pointer_to(Type *base);
 int size_of(Type *type);
+Type *parse_type();
+
+// Variable management
+typedef struct LVar LVar;
+
+struct LVar {
+    LVar *next;
+    char *name;
+    int len;
+    int offset;
+    Type *type;
+};
+
+LVar *create_lvar(char *name, int len, Type *type);
+LVar *find_lvar(char *name, int len);
+void clear_locals();
+int get_current_offset();
+void set_current_offset(int offset);
 
 // tokenize
 
@@ -84,8 +102,6 @@ typedef enum {
 
 typedef struct Node Node;
 
-extern int current_offset;
-
 struct Node {
     NodeKind kind;
     Node *next;
@@ -103,14 +119,22 @@ struct Node {
     char *func_name;
     Node *args[6];
     int argc;
-    // 関数定義用
+
     int paramc;
     Node *func_body;
 
-    Type *type;  // ノードの型情報
+    Type *type;
     int val;
     int offset;
 };
+
+// Node utility functions
+Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
+Node *new_node_num(int val);
+Node *new_unary(NodeKind kind, Node *expr);
+Node *new_num(int val);
+Node *new_lvar_node(LVar *lvar);
+char *strndup_safe(char *src, int len);
 
 Node *program();
 Node *stmt();

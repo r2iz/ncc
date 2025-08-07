@@ -71,6 +71,33 @@ static bool is_alnum(char c) {
            ('0' <= c && c <= '9') || c == '_';
 }
 
+static bool is_keyword(char *p, int *len) {
+    static char *keywords[] = {"if", "else", "while", "for", "return", "int"};
+    static int keyword_count = sizeof(keywords) / sizeof(*keywords);
+
+    for (int i = 0; i < keyword_count; i++) {
+        int kw_len = strlen(keywords[i]);
+        if (!strncmp(p, keywords[i], kw_len) && !is_alnum(p[kw_len])) {
+            *len = kw_len;
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool is_two_char_op(char *p, int *len) {
+    if (!strncmp(p, "==", 2) || !strncmp(p, "!=", 2) || !strncmp(p, "<=", 2) ||
+        !strncmp(p, ">=", 2)) {
+        *len = 2;
+        return true;
+    }
+    return false;
+}
+
+static bool is_single_char_op(char c) {
+    return strchr("+-*/()<>;={},&", c) != NULL;
+}
+
 Token *tokenize(char *p) {
     Token head;
     head.next = NULL;
@@ -82,26 +109,16 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        char *keywords[] = {"if", "else", "while", "for", "return", "int"};
-        int keyword_len = sizeof(keywords) / sizeof(*keywords);
-        bool is_keyword = false;
-        for (int i = 0; i < keyword_len; i++) {
-            int len = strlen(keywords[i]);
-            if (!strncmp(p, keywords[i], len) && !is_alnum(p[len])) {
-                cur = new_token(TK_RESERVED, cur, p, len);
-                p += len;
-                is_keyword = true;
-                break;
-            }
-        }
-        if (is_keyword) {
+        int len;
+        if (is_keyword(p, &len)) {
+            cur = new_token(TK_RESERVED, cur, p, len);
+            p += len;
             continue;
         }
 
-        if (!strncmp(p, "==", 2) || !strncmp(p, "!=", 2) ||
-            !strncmp(p, "<=", 2) || !strncmp(p, ">=", 2)) {
-            cur = new_token(TK_RESERVED, cur, p, 2);
-            p += 2;
+        if (is_two_char_op(p, &len)) {
+            cur = new_token(TK_RESERVED, cur, p, len);
+            p += len;
             continue;
         }
 
@@ -114,7 +131,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        if (strchr("+-*/()<>;={},&", *p)) {
+        if (is_single_char_op(*p)) {
             cur = new_token(TK_RESERVED, cur, p, 1);
             p++;
             continue;
