@@ -79,4 +79,6 @@ assert 3 'return ret3();'
 assert 5 'return ret5();'
 assert 8 'return retsum(3, 5);'
 
+assert 3 'a=3; b=&a; return *b;'
+
 echo OK

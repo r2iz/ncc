@@ -44,7 +44,7 @@ typedef enum {
     ND_SUB,        // -
     ND_MUL,        // *
     ND_DIV,        // /
-    ND_EQ,         // =
+    ND_EQ,         // ==
     ND_NE,         // !=
     ND_LT,         // <
     ND_LE,         // <=
@@ -57,6 +57,8 @@ typedef enum {
     ND_FUNCALL,    // function call
     ND_EXPR_STMT,  // expression statement
     ND_LVAR,       // Local variable
+    ND_ADDR,       // &
+    ND_DEREF,      // *
     ND_NUM,
 } NodeKind;
 

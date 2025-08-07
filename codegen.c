@@ -9,6 +9,10 @@ void gen_addr(Node *node) {
         printf("  push rax\n");
         return;
     }
+    if (node->kind == ND_DEREF) {
+        gen(node->lhs);
+        return;
+    }
 
     error("変数ではありません");
 }
@@ -36,6 +40,15 @@ void gen(Node *node) {
             gen(node->lhs);
             printf("  pop rax\n");
             printf("  jmp .Lreturn\n");
+            return;
+        case ND_ADDR:
+            gen_addr(node->lhs);
+            return;
+        case ND_DEREF:
+            gen(node->lhs);
+            printf("  pop rax\n");
+            printf("  mov rax, [rax]\n");
+            printf("  push rax\n");
             return;
         case ND_EXPR_STMT:
             gen(node->lhs);
