@@ -83,5 +83,7 @@ assert 8 'add2(int a, int b) { return a + b; } main() { return add2(3, 5); }'
 assert 21 'fib(int n) { if (n <= 1) return n; return fib(n-1) + fib(n-2); } main() { return fib(8); }'
 
 assert 3 'main() { int a; int b; a=3; b=&a; return *b; }'
+assert 3 'main() { int *p; int a; a=3; p=&a; return *p; }'
+assert 8 'main() { int *p; int *q; int a; int b; a=3; b=5; p=&a; q=&b; return *p + *q; }'
 
 echo OK

@@ -5,6 +5,24 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Type
+typedef enum {
+    TY_INT,  // int
+    TY_PTR,  // pointer
+} TypeKind;
+
+typedef struct Type Type;
+
+struct Type {
+    TypeKind kind;
+    Type *ptr_to;  // ポインタが指す型
+    int size;      // 型のサイズ
+};
+
+Type *int_type();
+Type *pointer_to(Type *base);
+int size_of(Type *type);
+
 // tokenize
 
 typedef enum {
@@ -89,6 +107,7 @@ struct Node {
     int paramc;
     Node *func_body;
 
+    Type *type;  // ノードの型情報
     int val;
     int offset;
 };

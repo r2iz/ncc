@@ -1,5 +1,22 @@
 #include "ncc.h"
 
+Type *int_type() {
+    Type *type = calloc(1, sizeof(Type));
+    type->kind = TY_INT;
+    type->size = 8;
+    return type;
+}
+
+Type *pointer_to(Type *base) {
+    Type *type = calloc(1, sizeof(Type));
+    type->kind = TY_PTR;
+    type->ptr_to = base;
+    type->size = 8;
+    return type;
+}
+
+int size_of(Type *type) { return type->size; }
+
 typedef struct LVar LVar;
 
 struct LVar {
@@ -7,10 +24,24 @@ struct LVar {
     char *name;
     int len;
     int offset;
+    Type *type;
 };
 
 static LVar *locals;
 int current_offset;
+
+Type *parse_type() {
+    if (!consume("int")) {
+        error_at(token->str, "型が必要です");
+    }
+    Type *type = int_type();
+
+    while (consume("*")) {
+        type = pointer_to(type);
+    }
+
+    return type;
+}
 
 static LVar *find_lvar(char *name, int len) {
     for (LVar *var = locals; var; var = var->next) {
@@ -74,9 +105,7 @@ Node *program() {
                     if (func->paramc >= 6) {
                         error_at(tok->str, "引数は最大6つまでです");
                     }
-                    if (!consume("int")) {
-                        error_at(token->str, "引数の型が必要です");
-                    }
+                    Type *param_type = parse_type();
                     Token *param_tok = consume_ident();
                     if (!param_tok) {
                         error_at(token->str, "引数名が必要です");
@@ -85,7 +114,8 @@ Node *program() {
                     LVar *lvar = calloc(1, sizeof(LVar));
                     lvar->name = param_tok->str;
                     lvar->len = param_tok->len;
-                    current_offset += 8;
+                    lvar->type = param_type;
+                    current_offset += size_of(param_type);
                     lvar->offset = current_offset;
                     lvar->next = locals;
                     locals = lvar;
@@ -129,14 +159,17 @@ Node *program() {
 }
 
 Node *stmt() {
-    if (consume("int")) {
+    if (token && token->kind == TK_RESERVED && token->len == 3 &&
+        !strncmp(token->str, "int", 3)) {
+        Type *type = parse_type();
         Token *tok = consume_ident();
         if (!tok) error_at(token->str, "変数名が必要です");
 
         LVar *lvar = calloc(1, sizeof(LVar));
         lvar->name = tok->str;
         lvar->len = tok->len;
-        current_offset += 8;
+        lvar->type = type;
+        current_offset += size_of(type);
         lvar->offset = current_offset;
         lvar->next = locals;
         locals = lvar;
@@ -330,6 +363,8 @@ Node *primary() {
             error_at(tok->str, "宣言されていない変数です");
         }
         Node *node = new_node(ND_LVAR, NULL, NULL);
+        // Typeも！
+        node->type = lvar->type;
         node->offset = lvar->offset;
         return node;
     }
