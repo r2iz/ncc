@@ -50,6 +50,9 @@ void gen(Node *node) {
             printf("  mov rax, [rax]\n");
             printf("  push rax\n");
             return;
+        case ND_VAR_DECL:
+            // 変数宣言は宣言なので宣言(?)
+            return;
         case ND_EXPR_STMT:
             gen(node->lhs);
             printf("  pop rax\n");

@@ -82,7 +82,7 @@ Token *tokenize(char *p) {
             continue;
         }
 
-        char *keywords[] = {"if", "else", "while", "for", "return"};
+        char *keywords[] = {"if", "else", "while", "for", "return", "int"};
         int keyword_len = sizeof(keywords) / sizeof(*keywords);
         bool is_keyword = false;
         for (int i = 0; i < keyword_len; i++) {

@@ -59,6 +59,7 @@ typedef enum {
     ND_LVAR,       // Local variable
     ND_ADDR,       // &
     ND_DEREF,      // *
+    ND_VAR_DECL,   // variable declaration
     ND_NUM,
 } NodeKind;
 

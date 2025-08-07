@@ -52,15 +52,15 @@ assert 1 'return 1>=0;'
 assert 1 'return 1>=1;'
 assert 0 'return 1>=2;'
 
-assert 3 'a=3; return a;'
-assert 8 'a=3; z=5; return a+z;'
+assert 3 'int a; a=3; return a;'
+assert 8 'int a; int z; a=3; z=5; return a+z;'
 
 assert 1 'return 1; 2; 3;'
 assert 2 '1; return 2; 3;'
 assert 3 '1; 2; return 3;'
 
-assert 3 'foo=3; return foo;'
-assert 8 'foo123=3; bar=5; return foo123+bar;'
+assert 3 'int foo; foo=3; return foo;'
+assert 8 'int foo123; int bar; foo123=3; bar=5; return foo123+bar;'
 
 assert 3 'if (0) return 2; return 3;'
 assert 3 'if (1-1) return 2; return 3;'
@@ -69,16 +69,16 @@ assert 2 'if (2-1) return 2; return 3;'
 
 assert 3 '{1; {2;} return 3;}'
 
-assert 10 'i=0; while(i<10) i=i+1; return i;'
-assert 55 'i=0; j=0; while(i<=10) {j=i+j; i=i+1;} return j;'
+assert 10 'int i; i=0; while(i<10) i=i+1; return i;'
+assert 55 'int i; int j; i=0; j=0; while(i<=10) {j=i+j; i=i+1;} return j;'
 
-assert 55 'i=0; j=0; for (i=0; i<=10; i=i+1) j=i+j; return j;'
+assert 55 'int i; int j; i=0; j=0; for (i=0; i<=10; i=i+1) j=i+j; return j;'
 assert 3 'for (;;) return 3; return 5;'
 
 assert 3 'return ret3();'
 assert 5 'return ret5();'
 assert 8 'return retsum(3, 5);'
 
-assert 3 'a=3; b=&a; return *b;'
+assert 3 'int a; int b; a=3; b=&a; return *b;'
 
 echo OK

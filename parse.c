@@ -64,6 +64,22 @@ Node *program() {
 }
 
 Node *stmt() {
+    if (consume("int")) {
+        Token *tok = consume_ident();
+        if (!tok) error_at(token->str, "変数名が必要です");
+
+        LVar *lvar = calloc(1, sizeof(LVar));
+        lvar->name = tok->str;
+        lvar->len = tok->len;
+        current_offset += 8;
+        lvar->offset = current_offset;
+        lvar->next = locals;
+        locals = lvar;
+
+        expect(";");
+        return new_node(ND_VAR_DECL, NULL, NULL);
+    }
+
     if (consume("return")) {
         Node *node = new_unary(ND_RETURN, expr());
         expect(";");
@@ -246,13 +262,7 @@ Node *primary() {
         // variable
         LVar *lvar = find_lvar(tok->str, tok->len);
         if (!lvar) {
-            lvar = calloc(1, sizeof(LVar));
-            lvar->name = tok->str;
-            lvar->len = tok->len;
-            current_offset += 8;
-            lvar->offset = current_offset;
-            lvar->next = locals;
-            locals = lvar;
+            error_at(tok->str, "宣言されていない変数です");
         }
         Node *node = new_node(ND_LVAR, NULL, NULL);
         node->offset = lvar->offset;
