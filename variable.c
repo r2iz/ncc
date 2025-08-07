@@ -14,7 +14,11 @@ LVar *create_lvar(char *name, int len, Type *type) {
     lvar->name = name;
     lvar->len = len;
     lvar->type = type;
-    current_offset += size_of(type);
+
+    // 8バイト境界でアライメント
+    int type_size = size_of(type);
+    int aligned_size = (type_size + 7) & ~7;
+    current_offset += aligned_size;
     lvar->offset = current_offset;
     lvar->next = locals;
     locals = lvar;

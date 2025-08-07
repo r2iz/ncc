@@ -11,6 +11,9 @@ typedef enum {
     TY_PTR,  // pointer
 } TypeKind;
 
+#define SIZE_INT 4
+#define SIZE_PTR 8
+
 typedef struct Type Type;
 
 struct Type {
@@ -97,6 +100,7 @@ typedef enum {
     ND_ADDR,       // &
     ND_DEREF,      // *
     ND_VAR_DECL,   // variable declaration
+    ND_SIZEOF,     // sizeof
     ND_NUM,
 } NodeKind;
 
@@ -135,6 +139,8 @@ Node *new_unary(NodeKind kind, Node *expr);
 Node *new_num(int val);
 Node *new_lvar_node(LVar *lvar);
 char *strndup_safe(char *src, int len);
+
+Type *get_type_from_node(Node *node);
 
 Node *program();
 Node *stmt();

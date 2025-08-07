@@ -86,4 +86,6 @@ assert 3 'main() { int a; int b; a=3; b=&a; return *b; }'
 assert 3 'main() { int *p; int a; a=3; p=&a; return *p; }'
 assert 8 'main() { int *p; int *q; int a; int b; a=3; b=5; p=&a; q=&b; return *p + *q; }'
 
+assert 4 'main() { int x; return sizeof(x); }'
+
 echo OK

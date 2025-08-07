@@ -72,7 +72,8 @@ static bool is_alnum(char c) {
 }
 
 static bool is_keyword(char *p, int *len) {
-    static char *keywords[] = {"if", "else", "while", "for", "return", "int"};
+    static char *keywords[] = {"if",     "else", "while", "for",
+                               "return", "int",  "sizeof"};
     static int keyword_count = sizeof(keywords) / sizeof(*keywords);
 
     for (int i = 0; i < keyword_count; i++) {
@@ -84,7 +85,6 @@ static bool is_keyword(char *p, int *len) {
     }
     return false;
 }
-
 static bool is_two_char_op(char *p, int *len) {
     if (!strncmp(p, "==", 2) || !strncmp(p, "!=", 2) || !strncmp(p, "<=", 2) ||
         !strncmp(p, ">=", 2)) {

@@ -155,6 +155,13 @@ void gen(Node *node) {
             return;
         case ND_VAR_DECL:
             return;
+        case ND_SIZEOF: {
+            // sizeof演算子はコンパイル時に値を計算する
+            Type *type = get_type_from_node(node->lhs);
+            int size = size_of(type);
+            printf("  push %d\n", size);
+            return;
+        }
         case ND_EXPR_STMT:
             gen(node->lhs);
             printf("  pop rax\n");

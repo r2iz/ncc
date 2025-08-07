@@ -256,6 +256,10 @@ Node *unary() {
     if (consume("*")) {
         return new_unary(ND_DEREF, unary());
     }
+    if (consume("sizeof")) {
+        Node *node = new_unary(ND_SIZEOF, unary());
+        return node;
+    }
     return primary();
 }
 
