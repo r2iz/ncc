@@ -63,6 +63,22 @@ static Node *parse_function_call(Token *name_token) {
     return node;
 }
 
+static Node *parse_global_variable_declaration() {
+    Type *type = parse_type();
+    Token *tok = consume_ident();
+
+    if (consume("[")) {
+        int array_len = expect_number();
+        expect("]");
+        type = array_of(type, array_len);
+    }
+
+    create_gvar(tok->str, tok->len, type);
+
+    expect(";");
+    return new_node(ND_VAR_DECL, NULL, NULL);
+}
+
 static Node *parse_variable_declaration() {
     Type *type = parse_type();
     Token *tok = consume_ident();
@@ -88,21 +104,22 @@ Node *program() {
     Node *cur = &head;
 
     while (!at_eof()) {
-        // lookahead
-        Token *saved_token = token;
         if (token && token->kind == TK_RESERVED && token->len == 3 &&
             !strncmp(token->str, "int", 3)) {
+            Token *saved = token;
             token = token->next;
-            Token *tok = consume_ident();
-            if (tok && consume("(")) {
-                token = saved_token;
-                cur->next = parse_function_definition(tok);
-                cur = cur->next;
-                clear_locals();
+            if (token && token->kind == TK_IDENT && token->next &&
+                token->next->str[0] != '(') {
+                token = saved;
+                parse_global_variable_declaration();
                 continue;
             } else {
-                token = saved_token;
+                token = saved;
+                cur->next = parse_function_definition(saved);
+                cur = cur->next;
+                continue;
             }
+            token = saved;
         }
         cur->next = stmt();
         cur = cur->next;
@@ -286,10 +303,17 @@ Node *primary() {
             return parse_function_call(tok);
         }
 
-        // local variable
+        // variable
         LVar *lvar = find_lvar(tok->str, tok->len);
         if (!lvar) {
-            error_at(tok->str, "宣言されていない変数です");
+            GVar *gvar = find_gvar(tok->str, tok->len);
+            if (!gvar) {
+                error_at(tok->str, "宣言されていない変数です");
+            }
+            // global variable
+            Node *node = new_node(ND_GLOBAL_VAR, NULL, NULL);
+            node->func_name = strndup_safe(tok->str, tok->len);
+            return node;
         }
         Node *node = new_lvar_node(lvar);
 

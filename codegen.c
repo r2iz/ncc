@@ -113,6 +113,11 @@ void gen_addr(Node *node) {
         printf("  push rax\n");
         return;
     }
+    if (node->kind == ND_GLOBAL_VAR) {
+        printf("  lea rax, %s[rip]\n", node->func_name);
+        printf("  push rax\n");
+        return;
+    }
 
     error("変数ではありません");
 }
@@ -135,7 +140,7 @@ void gen(Node *node) {
             }
 
             in_function = prev_in_function;
-            emit_epilogue();
+            // emit_epilogue();
             return;
         }
         case ND_NUM:
@@ -150,6 +155,12 @@ void gen(Node *node) {
                 printf("  mov rax, [rax]\n");
                 printf("  push rax\n");
             }
+            return;
+        case ND_GLOBAL_VAR:
+            gen_addr(node);
+            printf("  pop rax\n");
+            printf("  mov rax, [rax]\n");
+            printf("  push rax\n");
             return;
         case ND_INDEX:
             gen_addr(node);
@@ -186,7 +197,6 @@ void gen(Node *node) {
         case ND_VAR_DECL:
             return;
         case ND_SIZEOF: {
-            // sizeof演算子はコンパイル時に値を計算する
             Type *type = get_type_from_node(node->lhs);
             int size = size_of(type);
             printf("  push %d\n", size);
@@ -286,6 +296,12 @@ static void gen_control_flow(Node *node) {
 
 void codegen(Node *node) {
     printf(".intel_syntax noprefix\n");
+
+    for (GVar *gvar = globals; gvar; gvar = gvar->next) {
+        printf(".data\n");
+        printf("%.*s:\n", gvar->len, gvar->name);
+        printf("  .zero %d\n", size_of(gvar->type));
+    }
 
     Node *main_statements = NULL;
 

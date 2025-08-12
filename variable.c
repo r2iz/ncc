@@ -1,6 +1,29 @@
 #include "ncc.h"
 
-// ローカル変数のリスト
+// global variable list
+GVar *globals = NULL;
+
+GVar *create_gvar(char *name, int len, Type *type) {
+    GVar *gvar = calloc(1, sizeof(GVar));
+    gvar->name = name;
+    gvar->len = len;
+    gvar->type = type;
+    gvar->next = globals;
+    globals = gvar;
+
+    return gvar;
+}
+
+GVar *find_gvar(char *name, int len) {
+    for (GVar *gvar = globals; gvar; gvar = gvar->next) {
+        if (gvar->len == len && !strncmp(gvar->name, name, len)) {
+            return gvar;
+        }
+    }
+    return NULL;
+}
+
+// local variable list
 static LVar *locals = NULL;
 static int current_offset = 0;
 

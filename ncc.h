@@ -31,6 +31,20 @@ Type *array_of(Type *base, int len);
 int size_of(Type *type);
 Type *parse_type();
 
+// Global variable management
+typedef struct GVar GVar;
+
+struct GVar {
+    char *name;
+    int len;
+    Type *type;
+    GVar *next;
+};
+
+GVar *create_gvar(char *name, int len, Type *type);
+GVar *find_gvar(char *name, int len);
+extern GVar *globals;
+
 // Local variable management
 typedef struct LVar LVar;
 
@@ -83,29 +97,30 @@ Token *tokenize(char *p);
 
 // parse
 typedef enum {
-    ND_ADD,        // +
-    ND_SUB,        // -
-    ND_MUL,        // *
-    ND_DIV,        // /
-    ND_EQ,         // ==
-    ND_NE,         // !=
-    ND_LT,         // <
-    ND_LE,         // <=
-    ND_ASSIGN,     // =
-    ND_RETURN,     // return
-    ND_IF,         // if
-    ND_WHILE,      // while
-    ND_FOR,        // for
-    ND_BLOCK,      // { ... }
-    ND_FUNCALL,    // function call
-    ND_FUNCDEF,    // function definition
-    ND_EXPR_STMT,  // expression statement
-    ND_LVAR,       // Local variable
-    ND_ADDR,       // &
-    ND_DEREF,      // *
-    ND_INDEX,      // array[index]
-    ND_VAR_DECL,   // variable declaration
-    ND_SIZEOF,     // sizeof
+    ND_ADD,         // +
+    ND_SUB,         // -
+    ND_MUL,         // *
+    ND_DIV,         // /
+    ND_EQ,          // ==
+    ND_NE,          // !=
+    ND_LT,          // <
+    ND_LE,          // <=
+    ND_ASSIGN,      // =
+    ND_RETURN,      // return
+    ND_IF,          // if
+    ND_WHILE,       // while
+    ND_FOR,         // for
+    ND_BLOCK,       // { ... }
+    ND_FUNCALL,     // function call
+    ND_FUNCDEF,     // function definition
+    ND_EXPR_STMT,   // expression statement
+    ND_LVAR,        // Local variable
+    ND_GLOBAL_VAR,  // Global variable
+    ND_ADDR,        // &
+    ND_DEREF,       // *
+    ND_INDEX,       // array[index]
+    ND_VAR_DECL,    // variable declaration
+    ND_SIZEOF,      // sizeof
     ND_NUM,
 } NodeKind;
 
