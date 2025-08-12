@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <string.h>
-
 #include "ncc.h"
 
 static Node *parse_function_definition(Token *name_token) {
