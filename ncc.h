@@ -140,6 +140,8 @@ struct Node {
 
     Node *body;
 
+    char *var_name;
+
     char *func_name;
     Node *args[6];
     int argc;

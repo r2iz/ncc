@@ -82,6 +82,14 @@ Type *get_type_from_node(Node *node) {
         case ND_LT:
         case ND_LE:
             return int_type();
+        case ND_GLOBAL_VAR:
+            if (node->var_name) {
+                GVar *gvar = find_gvar(node->var_name, strlen(node->var_name));
+                if (gvar) {
+                    return gvar->type;
+                }
+            }
+            break;
         default:
             break;
     }

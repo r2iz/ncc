@@ -1,3 +1,6 @@
+#include <stdio.h>
+#include <string.h>
+
 #include "ncc.h"
 
 static Node *parse_function_definition(Token *name_token) {
@@ -72,11 +75,14 @@ static Node *parse_global_variable_declaration() {
         expect("]");
         type = array_of(type, array_len);
     }
-
     create_gvar(tok->str, tok->len, type);
 
     expect(";");
-    return new_node(ND_VAR_DECL, NULL, NULL);
+
+    Node *node = new_node(ND_VAR_DECL, NULL, NULL);
+    node->type = type;
+    node->var_name = strndup_safe(tok->str, tok->len);
+    return node;
 }
 
 static Node *parse_variable_declaration() {
@@ -193,7 +199,7 @@ Node *stmt() {
         return node;
     }
 
-    Node *node = new_unary(ND_EXPR_STMT, expr());
+    Node *node = expr();
     expect(";");
     return node;
 }
@@ -303,6 +309,8 @@ Node *primary() {
             return parse_function_call(tok);
         }
 
+        Node *node = NULL;
+
         // variable
         LVar *lvar = find_lvar(tok->str, tok->len);
         if (!lvar) {
@@ -311,11 +319,12 @@ Node *primary() {
                 error_at(tok->str, "宣言されていない変数です");
             }
             // global variable
-            Node *node = new_node(ND_GLOBAL_VAR, NULL, NULL);
-            node->func_name = strndup_safe(tok->str, tok->len);
-            return node;
+            node = new_node(ND_GLOBAL_VAR, NULL, NULL);
+            node->var_name = strndup_safe(tok->str, tok->len);
+            node->type = gvar->type;
+        } else {
+            node = new_lvar_node(lvar);
         }
-        Node *node = new_lvar_node(lvar);
 
         // array access
         if (consume("[")) {

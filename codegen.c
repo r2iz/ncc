@@ -98,13 +98,12 @@ void gen_addr(Node *node) {
         gen_addr(node->lhs);
         // calculate index
         gen(node->rhs);
-        printf("  pop rdi\n");  // index
-        printf("  pop rax\n");  // base address
-
-        // get size of array element type
+        printf("  pop rdi\n");
+        printf("  pop rax\n");
         Type *base_type = node->lhs->type;
         Type *elem_type = (base_type->kind == TY_ARRAY) ? base_type->array_of
                                                         : base_type->ptr_to;
+
         int elem_size = size_of(elem_type);
 
         // calculate index * elem_size
@@ -114,7 +113,7 @@ void gen_addr(Node *node) {
         return;
     }
     if (node->kind == ND_GLOBAL_VAR) {
-        printf("  lea rax, %s[rip]\n", node->func_name);
+        printf("  lea rax, %s[rip]\n", node->var_name);
         printf("  push rax\n");
         return;
     }
@@ -127,6 +126,7 @@ void gen(Node *node) {
 
     switch (node->kind) {
         case ND_FUNCDEF: {
+            printf(".text\n");
             printf(".global %s\n", node->func_name);
             printf("%s:\n", node->func_name);
             emit_prologue(node->offset);
@@ -316,6 +316,7 @@ void codegen(Node *node) {
     }
 
     if (main_statements) {
+        printf(".text\n");
         printf(".global main\n");
         printf("main:\n");
 
