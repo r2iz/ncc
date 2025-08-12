@@ -69,6 +69,12 @@ static Node *parse_variable_declaration() {
         error_at(token->str, "変数名が必要です");
     }
 
+    if (consume("[")) {
+        int array_len = expect_number();
+        expect("]");
+        type = array_of(type, array_len);
+    }
+
     create_lvar(tok->str, tok->len, type);
     expect(";");
     return new_node(ND_VAR_DECL, NULL, NULL);
@@ -282,7 +288,18 @@ Node *primary() {
         if (!lvar) {
             error_at(tok->str, "宣言されていない変数です");
         }
-        return new_lvar_node(lvar);
+        Node *node = new_lvar_node(lvar);
+
+        // array access
+        if (consume("[")) {
+            Node *index = expr();
+            expect("]");
+            Node *array_access = new_node(ND_INDEX, node, index);
+            array_access->type = get_type_from_node(array_access);
+            return array_access;
+        }
+
+        return node;
     }
 
     return new_node_num(expect_number());

@@ -93,6 +93,26 @@ void gen_addr(Node *node) {
         gen(node->lhs);
         return;
     }
+    if (node->kind == ND_INDEX) {
+        // base address
+        gen_addr(node->lhs);
+        // calculate index
+        gen(node->rhs);
+        printf("  pop rdi\n");  // index
+        printf("  pop rax\n");  // base address
+
+        // get size of array element type
+        Type *base_type = node->lhs->type;
+        Type *elem_type = (base_type->kind == TY_ARRAY) ? base_type->array_of
+                                                        : base_type->ptr_to;
+        int elem_size = size_of(elem_type);
+
+        // calculate index * elem_size
+        printf("  imul rdi, %d\n", elem_size);
+        printf("  add rax, rdi\n");
+        printf("  push rax\n");
+        return;
+    }
 
     error("変数ではありません");
 }
@@ -122,6 +142,16 @@ void gen(Node *node) {
             printf("  push %d\n", node->val);
             return;
         case ND_LVAR:
+            if (node->type->kind == TY_ARRAY) {
+                gen_addr(node);
+            } else {
+                gen_addr(node);
+                printf("  pop rax\n");
+                printf("  mov rax, [rax]\n");
+                printf("  push rax\n");
+            }
+            return;
+        case ND_INDEX:
             gen_addr(node);
             printf("  pop rax\n");
             printf("  mov rax, [rax]\n");

@@ -24,6 +24,18 @@ Type *pointer_to(Type *base) {
     return type;
 }
 
+Type *array_of(Type *base, int len) {
+    if (!base) {
+        error("配列のベース型がNULLです");
+    }
+    Type *type = calloc(1, sizeof(Type));
+    type->kind = TY_ARRAY;
+    type->array_of = base;
+    type->array_len = len;
+    type->size = base->size * len;
+    return type;
+}
+
 int size_of(Type *type) {
     if (!type) {
         error("型がNULLです");
@@ -50,6 +62,15 @@ Type *get_type_from_node(Node *node) {
         case ND_ADDR:
             if (node->lhs && node->lhs->type) {
                 return pointer_to(node->lhs->type);
+            }
+            break;
+        case ND_INDEX:
+            if (node->lhs && node->lhs->type) {
+                if (node->lhs->type->kind == TY_ARRAY) {
+                    return node->lhs->type->array_of;
+                } else if (node->lhs->type->kind == TY_PTR) {
+                    return node->lhs->type->ptr_to;
+                }
             }
             break;
         case ND_ADD:

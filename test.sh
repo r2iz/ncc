@@ -88,4 +88,8 @@ assert 8 'main() { int *p; int *q; int a; int b; a=3; b=5; p=&a; q=&b; return *p
 
 assert 4 'main() { int x; return sizeof(x); }'
 
+assert 8 'main() { int a[2]; return sizeof(a); }'
+assert 4 'main() { int a[1]; a[0] = 4; return a[0]; }'
+assert 4 'main() { int a[1]; a[0] = 4; return *a; }'
+
 echo OK

@@ -7,8 +7,9 @@
 
 // Type
 typedef enum {
-    TY_INT,  // int
-    TY_PTR,  // pointer
+    TY_INT,    // int
+    TY_PTR,    // pointer
+    TY_ARRAY,  // array
 } TypeKind;
 
 #define SIZE_INT 4
@@ -18,16 +19,19 @@ typedef struct Type Type;
 
 struct Type {
     TypeKind kind;
-    Type *ptr_to;  // ポインタが指す型
-    int size;      // 型のサイズ
+    Type *ptr_to;
+    Type *array_of;
+    int array_len;
+    int size;
 };
 
 Type *int_type();
 Type *pointer_to(Type *base);
+Type *array_of(Type *base, int len);
 int size_of(Type *type);
 Type *parse_type();
 
-// Variable management
+// Local variable management
 typedef struct LVar LVar;
 
 struct LVar {
@@ -99,6 +103,7 @@ typedef enum {
     ND_LVAR,       // Local variable
     ND_ADDR,       // &
     ND_DEREF,      // *
+    ND_INDEX,      // array[index]
     ND_VAR_DECL,   // variable declaration
     ND_SIZEOF,     // sizeof
     ND_NUM,
