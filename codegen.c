@@ -152,20 +152,35 @@ void gen(Node *node) {
             } else {
                 gen_addr(node);
                 printf("  pop rax\n");
-                printf("  mov rax, [rax]\n");
+                if (node->type->kind == TY_CHAR) {
+                    printf("  movsx rax, byte ptr [rax]\n");
+                } else {
+                    printf("  mov rax, [rax]\n");
+                }
                 printf("  push rax\n");
             }
             return;
         case ND_GLOBAL_VAR:
             gen_addr(node);
             printf("  pop rax\n");
-            printf("  mov rax, [rax]\n");
+            if (node->type && node->type->kind == TY_CHAR) {
+                printf("  movsx rax, byte ptr [rax]\n");
+            } else {
+                printf("  mov rax, [rax]\n");
+            }
             printf("  push rax\n");
             return;
         case ND_INDEX:
             gen_addr(node);
             printf("  pop rax\n");
-            printf("  mov rax, [rax]\n");
+            {
+                Type *type = get_type_from_node(node);
+                if (type && type->kind == TY_CHAR) {
+                    printf("  movsx rax, byte ptr [rax]\n");
+                } else {
+                    printf("  mov rax, [rax]\n");
+                }
+            }
             printf("  push rax\n");
             return;
         case ND_ASSIGN:
@@ -173,7 +188,14 @@ void gen(Node *node) {
             gen(node->rhs);
             printf("  pop rdi\n");
             printf("  pop rax\n");
-            printf("  mov [rax], rdi\n");
+            {
+                Type *type = get_type_from_node(node->lhs);
+                if (type && type->kind == TY_CHAR) {
+                    printf("  mov [rax], dil\n");
+                } else {
+                    printf("  mov [rax], rdi\n");
+                }
+            }
             printf("  push rdi\n");
             return;
         case ND_RETURN:
@@ -191,13 +213,25 @@ void gen(Node *node) {
         case ND_DEREF:
             gen(node->lhs);
             printf("  pop rax\n");
-            printf("  mov rax, [rax]\n");
+            {
+                Type *type = get_type_from_node(node);
+                if (type && type->kind == TY_CHAR) {
+                    printf("  movsx rax, byte ptr [rax]\n");
+                } else {
+                    printf("  mov rax, [rax]\n");
+                }
+            }
             printf("  push rax\n");
             return;
         case ND_VAR_DECL:
             return;
         case ND_SIZEOF: {
-            Type *type = get_type_from_node(node->lhs);
+            Type *type;
+            if (node->type) {
+                type = node->type;
+            } else {
+                type = get_type_from_node(node->lhs);
+            }
             int size = size_of(type);
             printf("  push %d\n", size);
             return;

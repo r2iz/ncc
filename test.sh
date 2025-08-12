@@ -102,4 +102,32 @@ assert 3 'int x[4]; int main() { x[0]=0; x[1]=1; x[2]=2; x[3]=3; return x[3]; }'
 assert 4 'int x; int main() { return sizeof(x); }'
 assert 20 'int x[5]; int main() { return sizeof(x); }'
 
+assert 97 "int main() { return 'a'; }"
+assert 65 "int main() { return 'A'; }"
+assert 48 "int main() { return '0'; }"
+assert 10 "int main() { return '\\n'; }"
+assert 9 "int main() { return '\\t'; }"
+assert 0 "int main() { return '\\0'; }"
+assert 39 "int main() { return '\\''; }"
+assert 92 "int main() { return '\\\\'; }"
+
+assert 97 "int main() { char a; a='a'; return a; }"
+assert 65 "int main() { char a; char b; a='A'; b='B'; return a; }"
+assert 66 "int main() { char a; char b; a='A'; b='B'; return b; }"
+assert 131 "int main() { char a; char b; a='A'; b='B'; return a+b; }"
+
+assert 1 "int main() { char x; return sizeof(x); }"
+assert 1 "int main() { return sizeof(char); }"
+
+assert 5 "int main() { char a[5]; return sizeof(a); }"
+assert 97 "int main() { char a[2]; a[0]='a'; a[1]='b'; return a[0]; }"
+assert 98 "int main() { char a[2]; a[0]='a'; a[1]='b'; return a[1]; }"
+
+assert 97 "int main() { char a; char *p; a='a'; p=&a; return *p; }"
+assert 98 "int main() { char a; char b; char *p; a='a'; b='b'; p=&b; return *p; }"
+
+assert 0 "char g; int main() { return g; }"
+assert 120 "char g; int main() { g='x'; return g; }"
+assert 3 "char g[3]; int main() { g[0]='a'; g[1]='b'; g[2]='c'; return sizeof(g); }"
+
 echo OK

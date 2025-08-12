@@ -39,6 +39,13 @@ Token *consume_ident() {
     return tok;
 }
 
+Token *consume_char() {
+    if (!token || token->kind != TK_CHAR) return NULL;
+    Token *tok = token;
+    token = token->next;
+    return tok;
+}
+
 void expect(char *op) {
     if (!token || token->kind != TK_RESERVED || strlen(op) != token->len ||
         memcmp(token->str, op, token->len)) {
@@ -73,7 +80,7 @@ static bool is_alnum(char c) {
 
 static bool is_keyword(char *p, int *len) {
     static char *keywords[] = {"if",     "else", "while", "for",
-                               "return", "int",  "sizeof"};
+                               "return", "char", "int",   "sizeof"};
     static int keyword_count = sizeof(keywords) / sizeof(*keywords);
 
     for (int i = 0; i < keyword_count; i++) {
@@ -143,6 +150,48 @@ Token *tokenize(char *p) {
             cur->val = strtol(p, &q, 10);
             cur->len = q - p;
             p = q;
+            continue;
+        }
+
+        if (*p == '\'') {
+            char *start = p;
+            p++;  // skip opening quote
+            int val;
+            if (*p == '\\') {
+                p++;  // skip backslash
+                switch (*p) {
+                    case 'n':
+                        val = '\n';
+                        break;
+                    case 't':
+                        val = '\t';
+                        break;
+                    case 'r':
+                        val = '\r';
+                        break;
+                    case '\\':
+                        val = '\\';
+                        break;
+                    case '\'':
+                        val = '\'';
+                        break;
+                    case '0':
+                        val = '\0';
+                        break;
+                    default:
+                        error_at(p, "未対応のエスケープシーケンスです");
+                }
+                p++;
+            } else {
+                val = *p;
+                p++;
+            }
+            if (*p != '\'') {
+                error_at(p, "文字リテラルが閉じられていません");
+            }
+            p++;  // skip closing quote
+            cur = new_token(TK_CHAR, cur, start, p - start);
+            cur->val = val;
             continue;
         }
 

@@ -1,12 +1,22 @@
 #include "ncc.h"
 
+Type *char_type() {
+    Type *type = calloc(1, sizeof(Type));
+    if (!type) {
+        error("メモリの確保に失敗しました");
+    }
+    type->kind = TY_CHAR;
+    type->size = SIZE_CHAR;
+    return type;
+}
+
 Type *int_type() {
     Type *type = calloc(1, sizeof(Type));
     if (!type) {
         error("メモリの確保に失敗しました");
     }
     type->kind = TY_INT;
-    type->size = SIZE_INT;  // intは4バイト
+    type->size = SIZE_INT;
     return type;
 }
 
@@ -20,7 +30,7 @@ Type *pointer_to(Type *base) {
     }
     type->kind = TY_PTR;
     type->ptr_to = base;
-    type->size = SIZE_PTR;  // ポインタは8バイト
+    type->size = SIZE_PTR;
     return type;
 }
 
@@ -97,10 +107,14 @@ Type *get_type_from_node(Node *node) {
 }
 
 Type *parse_type() {
-    if (!consume("int")) {
+    Type *type;
+    if (consume("char")) {
+        type = char_type();
+    } else if (consume("int")) {
+        type = int_type();
+    } else {
         error_at(token->str, "型が必要です");
     }
-    Type *type = int_type();
 
     while (consume("*")) {
         type = pointer_to(type);

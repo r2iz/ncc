@@ -2,6 +2,7 @@ CC = gcc
 CFLAGS = -std=c11 -g -static -Wall -Wextra
 SRCS = $(wildcard *.c)
 OBJS = $(SRCS:.c=.o)
+NCC=./ncc
 
 ncc: $(OBJS)
 	$(CC) $(CFLAGS) -o ncc $(OBJS)

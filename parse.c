@@ -107,8 +107,9 @@ Node *program() {
     Node *cur = &head;
 
     while (!at_eof()) {
-        if (token && token->kind == TK_RESERVED && token->len == 3 &&
-            !strncmp(token->str, "int", 3)) {
+        if (token && token->kind == TK_RESERVED &&
+            ((token->len == 3 && !strncmp(token->str, "int", 3)) ||
+             (token->len == 4 && !strncmp(token->str, "char", 4)))) {
             Token *saved = token;
             token = token->next;
             if (token && token->kind == TK_IDENT && token->next &&
@@ -131,8 +132,9 @@ Node *program() {
 }
 
 Node *stmt() {
-    if (token && token->kind == TK_RESERVED && token->len == 3 &&
-        !strncmp(token->str, "int", 3)) {
+    if (token && token->kind == TK_RESERVED &&
+        ((token->len == 3 && !strncmp(token->str, "int", 3)) ||
+         (token->len == 4 && !strncmp(token->str, "char", 4)))) {
         return parse_variable_declaration();
     }
 
@@ -286,8 +288,25 @@ Node *unary() {
         return new_unary(ND_DEREF, unary());
     }
     if (consume("sizeof")) {
-        Node *node = new_unary(ND_SIZEOF, unary());
-        return node;
+        if (consume("(")) {
+            if (token && token->kind == TK_RESERVED &&
+                (strncmp(token->str, "char", 4) == 0 ||
+                 strncmp(token->str, "int", 3) == 0)) {
+                Type *type = parse_type();
+                expect(")");
+                Node *node = new_node(ND_SIZEOF, NULL, NULL);
+                node->type = type;
+                return node;
+            } else {
+                Node *expr_node = expr();
+                expect(")");
+                Node *node = new_unary(ND_SIZEOF, expr_node);
+                return node;
+            }
+        } else {
+            Node *node = new_unary(ND_SIZEOF, unary());
+            return node;
+        }
     }
     return primary();
 }
@@ -332,6 +351,13 @@ Node *primary() {
             return array_access;
         }
 
+        return node;
+    }
+
+    Token *char_tok = consume_char();
+    if (char_tok) {
+        Node *node = new_node_num(char_tok->val);
+        node->type = char_type();
         return node;
     }
 

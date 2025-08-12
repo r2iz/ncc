@@ -7,11 +7,13 @@
 
 // Type
 typedef enum {
+    TY_CHAR,   // char
     TY_INT,    // int
     TY_PTR,    // pointer
     TY_ARRAY,  // array
 } TypeKind;
 
+#define SIZE_CHAR 1
 #define SIZE_INT 4
 #define SIZE_PTR 8
 
@@ -25,6 +27,7 @@ struct Type {
     int size;
 };
 
+Type *char_type();
 Type *int_type();
 Type *pointer_to(Type *base);
 Type *array_of(Type *base, int len);
@@ -68,6 +71,7 @@ typedef enum {
     TK_RESERVED,
     TK_IDENT,
     TK_NUM,
+    TK_CHAR,  // character literal
     TK_EOF,
 } TokenKind;
 
@@ -89,6 +93,7 @@ void error_at(char *cur, char *fmt, ...);
 
 bool consume(char *op);
 Token *consume_ident();
+Token *consume_char();
 void expect(char *op);
 int expect_number();
 bool at_eof();
