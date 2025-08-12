@@ -1,6 +1,7 @@
 #include "ncc.h"
 
 static Node *parse_function_definition(Token *name_token) {
+    Type *ret_type = parse_type();
     Token *tok = consume_ident();
     if (!tok) {
         error_at(token->str, "関数名が必要です");
@@ -89,18 +90,20 @@ Node *program() {
     while (!at_eof()) {
         // lookahead
         Token *saved_token = token;
-        Token *tok = consume_ident();
-        if (tok && consume("(")) {
-            // function definition
-            token = saved_token;
-            cur->next = parse_function_definition(tok);
-            cur = cur->next;
-            clear_locals();
-            continue;
-        } else {
-            token = saved_token;
+        if (token && token->kind == TK_RESERVED && token->len == 3 &&
+            !strncmp(token->str, "int", 3)) {
+            token = token->next;
+            Token *tok = consume_ident();
+            if (tok && consume("(")) {
+                token = saved_token;
+                cur->next = parse_function_definition(tok);
+                cur = cur->next;
+                clear_locals();
+                continue;
+            } else {
+                token = saved_token;
+            }
         }
-
         cur->next = stmt();
         cur = cur->next;
     }
