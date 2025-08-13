@@ -109,10 +109,11 @@ Token *tokenize(char *p);
 
 // parse
 typedef enum {
-    ND_ADD,         // +
-    ND_SUB,         // -
-    ND_MUL,         // *
-    ND_DIV,         // /
+    ND_ADD,  // +
+    ND_SUB,  // -
+    ND_MUL,  // *
+    ND_DIV,  // /
+    ND_PERCENT,
     ND_EQ,          // ==
     ND_NE,          // !=
     ND_LT,          // <

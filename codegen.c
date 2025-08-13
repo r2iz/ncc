@@ -56,6 +56,11 @@ static void emit_binary_op(NodeKind kind) {
             printf("  cqo\n");
             printf("  idiv rdi\n");
             break;
+        case ND_PERCENT:
+            printf("  cqo\n");
+            printf("  idiv rdi\n");
+            printf("  mov rax, rdx\n");
+            break;
         case ND_EQ:
             printf("  cmp rax, rdi\n");
             printf("  sete al\n");

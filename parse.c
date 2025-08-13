@@ -288,6 +288,8 @@ Node *mul() {
             node = new_node(ND_MUL, node, unary());
         } else if (consume("/")) {
             node = new_node(ND_DIV, node, unary());
+        } else if (consume("%")) {
+            node = new_node(ND_PERCENT, node, unary());
         } else {
             return node;
         }

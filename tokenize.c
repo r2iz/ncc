@@ -129,7 +129,7 @@ static bool is_two_char_op(char *p, int *len) {
 }
 
 static bool is_single_char_op(char c) {
-    return strchr("+-*/()<>;={},&[]", c) != NULL;
+    return strchr("+-*/()<>;={},&[]%", c) != NULL;
 }
 
 Token *tokenize(char *p) {

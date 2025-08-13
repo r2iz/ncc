@@ -36,6 +36,8 @@ assert 4 'int main() { return (3+5)/2; }'
 assert 10 'int main() { return -10+20; }'
 assert 10 'int main() { return - -10; }'
 assert 10 'int main() { return - - +10; }'
+assert 1  'int main() { return 5 % 2; }'
+assert 61 'int main() { return 161 % 100; }'
 
 assert 0 'int main() { return 0==1; }'
 assert 1 'int main() { return 42==42; }'
