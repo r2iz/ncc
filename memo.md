@@ -1,34 +1,45 @@
-```
-program      = { function_definition | stmt } ;
+program        = global_def* ;
 
-function_definition = "int" ident "(" [ function_params ] ")" "{" { stmt } "}" ;
-function_params     = type ident { "," type ident } ;
+global_def     = function_def | global_var_decl ;
 
-stmt         = variable_declaration
-             | "return" expr ";"
-             | "{" { stmt } "}"
-             | "if" "(" expr ")" stmt [ "else" stmt ]
-             | "while" "(" expr ")" stmt
-             | "for" "(" [ expr ] ";" [ expr ] ";" [ expr ] ")" stmt
-             | expr ";" ;
+function_def   = type ident "(" [ params ] ")" "{" stmt* "}" ;
+params         = param { "," param } ;
+param          = type ident ;
 
-variable_declaration = type ident [ "[" number "]" ] ";" ;
+global_var_decl = type ident ( "[" num "]" )? ";" ;
 
-expr         = assign ;
-assign       = equality [ "=" assign ] ;
-equality     = relational { ("==" | "!=") relational } ;
-relational   = add { ("<" | "<=" | ">" | ">=") add } ;
-add          = mul { ("+" | "-") mul } ;
-mul          = unary { ("*" | "/") unary } ;
-unary        = ( "+" | "-" | "&" | "*" | "sizeof" ) unary | primary ;
-primary      = "(" expr ")"
-             | ident ( "(" [ function_args ] ")" | "[" expr "]" )?
-             | number ;
+stmt           = variable_decl
+               | "return" expr ";"
+               | "if" "(" expr ")" stmt ( "else" stmt )?
+               | "while" "(" expr ")" stmt
+               | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+               | "{" stmt* "}"
+               | expr ";" ;
 
-function_args = expr { "," expr } ;
+variable_decl  = type ident ( "[" num "]" )? ( "=" assign )? ";" ;
 
-type         = "int" ;  // 現状intのみ
+expr           = assign ;
+assign         = equality ( "=" assign )? ;
+equality       = relational ( ( "==" | "!=" ) relational )* ;
+relational     = add ( ( "<" | "<=" | ">" | ">=" ) add )* ;
+add            = mul ( ( "+" | "-" ) mul )* ;
+mul            = unary ( ( "*" | "/" ) unary )* ;
+unary          = ( "+" | "-" | "&" | "*" ) unary
+               | "sizeof" unary
+               | "sizeof" "(" type ")"
+               | primary ;
 
-ident        = 識別子 ;
-number       = 数値リテラル ;
-```
+primary        = num
+               | char_literal
+               | string_literal ( "[" expr "]" )*
+               | ident ( func_args | ( "[" expr "]" )* )?
+               | "(" expr ")" ;
+
+func_args      = "(" [ expr ( "," expr )* ] ")" ;
+
+type           = ( "char" | "int" ) "*"* ;
+
+ident          = identifier ;
+num            = number_literal ;
+char_literal   = character_literal ;
+string_literal = string_literal ;
