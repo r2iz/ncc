@@ -95,9 +95,29 @@ static Node *parse_variable_declaration() {
         type = array_of(type, array_len);
     }
 
-    create_lvar(tok->str, tok->len, type);
-    expect(";");
-    return new_node(ND_VAR_DECL, NULL, NULL);
+    LVar *lvar = create_lvar(tok->str, tok->len, type);
+    Node *decl = new_node(ND_VAR_DECL, NULL, NULL);
+    decl->type = type;
+    decl->var_name = strndup_safe(tok->str, tok->len);
+    decl->offset = lvar->offset;
+
+    // =があったら代入もくっつける
+    if (consume("=")) {
+        Node *lhs = new_lvar_node(lvar);
+        Node *rhs = assign();
+        Node *assign_node = new_node(ND_ASSIGN, lhs, rhs);
+        expect(";");
+        Node *block = new_node(ND_BLOCK, NULL, NULL);
+        Node *head = calloc(1, sizeof(Node));
+        head->next = decl;
+        decl->next = assign_node;
+        assign_node->next = NULL;
+        block->body = head->next;
+        return block;
+    } else {
+        expect(";");
+        return decl;
+    }
 }
 
 Node *program() {
