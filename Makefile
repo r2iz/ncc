@@ -13,6 +13,12 @@ ncc: $(OBJS)
 test: ncc
 	./test.sh
 
+test-c: ncc
+	./ncc test/test.c > tmp-c.s
+	gcc -static -o tmp-c tmp-c.s
+	./tmp-c
+
+
 clean:
 	rm -f ncc *.o *~ tmp*
 

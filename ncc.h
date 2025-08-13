@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -71,7 +72,7 @@ typedef enum {
     TK_RESERVED,
     TK_IDENT,
     TK_NUM,
-    TK_CHAR,  // character literal
+    TK_CHAR,
     TK_EOF,
 } TokenKind;
 

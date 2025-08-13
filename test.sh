@@ -5,19 +5,22 @@ int ret5() { return 5; }
 int retsum(int x, int y) { return x + y; }
 EOF
 
+
 assert() {
   expected="$1"
-  input="$2"
-
-  ./ncc "$input" > tmp.s
+  code="$2"
+  tmpfile="tmp_test.c"
+  echo "$code" > "$tmpfile"
+  ./ncc "$tmpfile" > tmp.s
   gcc -static -o tmp tmp.s tmp2.o
   ./tmp
   actual="$?"
+  rm -f "$tmpfile"
 
   if [ "$actual" = "$expected" ]; then
-    echo "$input => $actual"
+    echo "$code => $actual"
   else
-    echo "$input => $expected expected, but got $actual"
+    echo "$code => $expected expected, but got $actual"
     exit 1
   fi
 }
