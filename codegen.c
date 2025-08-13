@@ -170,7 +170,8 @@ void gen(Node *node) {
             }
 
             in_function = prev_in_function;
-            // emit_epilogue();
+
+            emit_epilogue();
             return;
         }
         case ND_NUM:
@@ -275,8 +276,10 @@ void gen(Node *node) {
             printf("  push rdi\n");
             return;
         case ND_RETURN:
-            gen(node->lhs);
-            printf("  pop rax\n");
+            if (node->lhs) {
+                gen(node->lhs);
+                printf("  pop rax\n");
+            }
             if (in_function) {
                 emit_epilogue();
             } else {

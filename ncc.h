@@ -12,6 +12,7 @@ typedef enum {
     TY_INT,    // int
     TY_PTR,    // pointer
     TY_ARRAY,  // array
+    TY_VOID,   // void
 } TypeKind;
 
 #define SIZE_CHAR 1
@@ -30,6 +31,7 @@ struct Type {
 
 Type *char_type();
 Type *int_type();
+Type *void_type();
 Type *pointer_to(Type *base);
 Type *array_of(Type *base, int len);
 int size_of(Type *type);

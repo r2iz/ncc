@@ -129,7 +129,8 @@ Node *program() {
     while (!at_eof()) {
         if (token && token->kind == TK_RESERVED &&
             ((token->len == 3 && !strncmp(token->str, "int", 3)) ||
-             (token->len == 4 && !strncmp(token->str, "char", 4)))) {
+             (token->len == 4 && !strncmp(token->str, "char", 4)) ||
+             (token->len == 4 && !strncmp(token->str, "void", 4)))) {
             Token *saved = token;
             token = token->next;
             if (token && token->kind == TK_IDENT && token->next &&
@@ -159,8 +160,14 @@ Node *stmt() {
     }
 
     if (consume("return")) {
-        Node *node = new_unary(ND_RETURN, expr());
-        expect(";");
+        Node *node;
+        if (consume(";")) {
+            node = new_unary(ND_RETURN, NULL);
+        } else {
+            node = new_unary(ND_RETURN, expr());
+            consume(";");
+        }
+
         return node;
     }
 

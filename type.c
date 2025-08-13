@@ -20,6 +20,15 @@ Type *int_type() {
     return type;
 }
 
+Type *void_type() {
+    Type *type = calloc(1, sizeof(Type));
+    if (!type) {
+        error("メモリの確保に失敗しました");
+    }
+    type->kind = TY_VOID;
+    return type;
+}
+
 Type *pointer_to(Type *base) {
     if (!base) {
         error("ポインタのベース型がNULLです");
@@ -114,6 +123,8 @@ Type *parse_type() {
         type = char_type();
     } else if (consume("int")) {
         type = int_type();
+    } else if (consume("void")) {
+        type = void_type();
     } else {
         error_at(token->str, "型が必要です");
     }

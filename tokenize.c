@@ -106,8 +106,8 @@ static bool is_alnum(char c) {
 }
 
 static bool is_keyword(char *p, int *len) {
-    static char *keywords[] = {"if",     "else", "while", "for",
-                               "return", "char", "int",   "sizeof"};
+    static char *keywords[] = {"if",   "else", "while", "for",   "return",
+                               "char", "int",  "void",  "sizeof"};
     static int keyword_count = sizeof(keywords) / sizeof(*keywords);
 
     for (int i = 0; i < keyword_count; i++) {
