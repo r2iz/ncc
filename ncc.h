@@ -135,6 +135,7 @@ typedef enum {
     ND_DEREF,       // *
     ND_INDEX,       // array[index]
     ND_VAR_DECL,    // variable declaration
+    ND_COMMA,       // ,
     ND_SIZEOF,      // sizeof
     ND_NUM,
     ND_STR,  // string literal

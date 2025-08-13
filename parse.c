@@ -56,7 +56,7 @@ static Node *parse_function_call(Token *name_token) {
             if (node->argc >= 6) {
                 error_at(name_token->str, "引数は最大6つまでです");
             }
-            node->args[node->argc++] = expr();
+            node->args[node->argc++] = assign();
         } while (consume(","));
         expect(")");
     }
@@ -230,7 +230,15 @@ Node *stmt() {
     return node;
 }
 
-Node *expr() { return assign(); }
+Node *expr() {
+    Node *node = assign();
+
+    while (consume(",")) {
+        node = new_node(ND_COMMA, node, assign());
+    }
+
+    return node;
+}
 
 Node *assign() {
     Node *node = equality();
