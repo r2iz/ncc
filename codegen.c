@@ -2,6 +2,7 @@
 
 static int label_count = 0;
 static bool in_function = false;
+static int str_label_count = 0;
 
 static const char *arg_regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
@@ -89,6 +90,30 @@ void gen_addr(Node *node) {
         printf("  push rax\n");
         return;
     }
+    if (node->kind == ND_STR) {
+        if (!node->str_label) {
+            char buf[32];
+            snprintf(buf, sizeof(buf), ".L.str.%d", str_label_count++);
+            node->str_label = strndup_safe(buf, strlen(buf));
+
+            printf(".data\n");
+            printf("%s:\n", node->str_label);
+            if (node->str_len > 0) {
+                printf("  .byte ");
+                for (int i = 0; i < node->str_len; i++) {
+                    if (i) printf(", ");
+                    printf("%d", (unsigned char)node->str_lit[i]);
+                }
+                printf(", 0\n");
+            } else {
+                printf("  .byte 0\n");
+            }
+            printf(".text\n");
+        }
+        printf("  lea rax, %s[rip]\n", node->str_label);
+        printf("  push rax\n");
+        return;
+    }
     if (node->kind == ND_DEREF) {
         gen(node->lhs);
         return;
@@ -146,6 +171,30 @@ void gen(Node *node) {
         case ND_NUM:
             printf("  push %d\n", node->val);
             return;
+        case ND_STR: {
+            if (!node->str_label) {
+                char buf[32];
+                snprintf(buf, sizeof(buf), ".L.str.%d", str_label_count++);
+                node->str_label = strndup_safe(buf, strlen(buf));
+
+                printf(".data\n");
+                printf("%s:\n", node->str_label);
+                if (node->str_len > 0) {
+                    printf("  .byte ");
+                    for (int i = 0; i < node->str_len; i++) {
+                        if (i) printf(", ");
+                        printf("%d", (unsigned char)node->str_lit[i]);
+                    }
+                    printf(", 0\n");
+                } else {
+                    printf("  .byte 0\n");
+                }
+                printf(".text\n");
+            }
+            printf("  lea rax, %s[rip]\n", node->str_label);
+            printf("  push rax\n");
+            return;
+        }
         case ND_LVAR:
             if (node->type->kind == TY_ARRAY) {
                 gen_addr(node);

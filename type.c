@@ -61,6 +61,8 @@ Type *get_type_from_node(Node *node) {
     switch (node->kind) {
         case ND_NUM:
             return int_type();
+        case ND_STR:
+            return node->type ? node->type : pointer_to(char_type());
         case ND_LVAR:
             return node->type;
         case ND_DEREF:

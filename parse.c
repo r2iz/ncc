@@ -335,40 +335,46 @@ Node *primary() {
     if (consume("(")) {
         Node *node = expr();
         expect(")");
+        while (consume("[")) {
+            Node *index = expr();
+            expect("]");
+            Node *array_access = new_node(ND_INDEX, node, index);
+            array_access->type = get_type_from_node(array_access);
+            node = array_access;
+        }
         return node;
     }
 
     Token *tok = consume_ident();
     if (tok) {
-        // function call
-        if (consume("(")) {
-            return parse_function_call(tok);
-        }
-
         Node *node = NULL;
 
-        // variable
-        LVar *lvar = find_lvar(tok->str, tok->len);
-        if (!lvar) {
-            GVar *gvar = find_gvar(tok->str, tok->len);
-            if (!gvar) {
-                error_at(tok->str, "宣言されていない変数です");
-            }
-            // global variable
-            node = new_node(ND_GLOBAL_VAR, NULL, NULL);
-            node->var_name = strndup_safe(tok->str, tok->len);
-            node->type = gvar->type;
+        // function call
+        if (consume("(")) {
+            node = parse_function_call(tok);
         } else {
-            node = new_lvar_node(lvar);
+            // variable
+            LVar *lvar = find_lvar(tok->str, tok->len);
+            if (!lvar) {
+                GVar *gvar = find_gvar(tok->str, tok->len);
+                if (!gvar) {
+                    error_at(tok->str, "宣言されていない変数です");
+                }
+                // global variable
+                node = new_node(ND_GLOBAL_VAR, NULL, NULL);
+                node->var_name = strndup_safe(tok->str, tok->len);
+                node->type = gvar->type;
+            } else {
+                node = new_lvar_node(lvar);
+            }
         }
 
-        // array access
-        if (consume("[")) {
+        while (consume("[")) {
             Node *index = expr();
             expect("]");
             Node *array_access = new_node(ND_INDEX, node, index);
             array_access->type = get_type_from_node(array_access);
-            return array_access;
+            node = array_access;
         }
 
         return node;
@@ -378,6 +384,23 @@ Node *primary() {
     if (char_tok) {
         Node *node = new_node_num(char_tok->val);
         node->type = char_type();
+        return node;
+    }
+
+    Token *str_tok = consume_string();
+    if (str_tok) {
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_STR;
+        node->str_lit = str_tok->string;
+        node->str_len = str_tok->string_len;
+        node->type = array_of(char_type(), node->str_len + 1);
+        while (consume("[")) {
+            Node *index = expr();
+            expect("]");
+            Node *array_access = new_node(ND_INDEX, node, index);
+            array_access->type = get_type_from_node(array_access);
+            node = array_access;
+        }
         return node;
     }
 

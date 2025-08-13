@@ -136,7 +136,7 @@ assert 3 "char g[3]; int main() { g[0]='a'; g[1]='b'; g[2]='c'; return sizeof(g)
 assert 0 "// comment
 int main() { return 0; }"
 
-assert 97 'int main() { return "abc[0]"; }'
+assert 97 'int main() { return "abc"[0]; }'
 assert 98 'int main() { return "abc"[1]; }'
 assert 99 'int main() { return "abc"[2]; }'
 assert 0 'int main() { return "abc"[3]; }'

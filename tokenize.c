@@ -66,6 +66,13 @@ Token *consume_char() {
     return tok;
 }
 
+Token *consume_string() {
+    if (!token || token->kind != TK_STR) return NULL;
+    Token *tok = token;
+    token = token->next;
+    return tok;
+}
+
 void expect(char *op) {
     if (!token || token->kind != TK_RESERVED || strlen(op) != token->len ||
         memcmp(token->str, op, token->len)) {
@@ -230,6 +237,68 @@ Token *tokenize(char *p) {
             p++;  // skip closing quote
             cur = new_token(TK_CHAR, cur, start, p - start);
             cur->val = val;
+            continue;
+        }
+
+        if (*p == '"') {
+            char *start = p;
+            p++;
+
+            int cap = 16;
+            int len = 0;
+            char *buf = malloc(cap);
+            if (!buf) error("メモリの確保に失敗しました");
+
+            while (*p && *p != '"') {
+                unsigned char ch;
+                if (*p == '\\') {
+                    p++;
+                    switch (*p) {
+                        case 'n':
+                            ch = '\n';
+                            break;
+                        case 't':
+                            ch = '\t';
+                            break;
+                        case 'r':
+                            ch = '\r';
+                            break;
+                        case '\\':
+                            ch = '\\';
+                            break;
+                        case '"':
+                            ch = '"';
+                            break;
+                        case '\'':
+                            ch = '\'';
+                            break;
+                        case '0':
+                            ch = '\0';
+                            break;
+                        default:
+                            error_at(p, "未対応のエスケープシーケンスです");
+                    }
+                    p++;
+                } else {
+                    ch = *p++;
+                }
+                if (len >= cap) {
+                    cap *= 2;
+                    buf = realloc(buf, cap);
+                    if (!buf) error("メモリの確保に失敗しました");
+                }
+                buf[len++] = ch;
+            }
+
+            if (*p != '"') {
+                error_at(p, "文字列リテラルが閉じられていません");
+            }
+            p++;
+
+            Token *t = new_token(TK_STR, cur, start, p - start);
+            t->string = buf;
+            t->string_len = len;
+            cur = t;
             continue;
         }
 

@@ -73,6 +73,7 @@ typedef enum {
     TK_IDENT,
     TK_NUM,
     TK_CHAR,
+    TK_STR,
     TK_EOF,
 } TokenKind;
 
@@ -84,6 +85,9 @@ struct Token {
     int val;
     char *str;
     int len;
+
+    char *string;
+    int string_len;
 };
 
 extern char *user_input;
@@ -96,6 +100,7 @@ void error_at(char *loc, char *fmt, ...);
 bool consume(char *op);
 Token *consume_ident();
 Token *consume_char();
+Token *consume_string();
 void expect(char *op);
 int expect_number();
 bool at_eof();
@@ -129,6 +134,7 @@ typedef enum {
     ND_VAR_DECL,    // variable declaration
     ND_SIZEOF,      // sizeof
     ND_NUM,
+    ND_STR,  // string literal
 } NodeKind;
 
 typedef struct Node Node;
@@ -159,6 +165,10 @@ struct Node {
     Type *type;
     int val;
     int offset;
+
+    char *str_lit;
+    int str_len;
+    char *str_label;
 };
 
 // Node utility functions
