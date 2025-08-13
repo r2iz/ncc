@@ -11,7 +11,7 @@ ncc: $(OBJS)
 	$(CC) $(CFLAGS) -c $<
 
 test: ncc
-	./test.sh
+	./test/test.sh
 
 test-c: ncc
 	./ncc test/test.c > tmp-c.s
