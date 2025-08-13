@@ -204,6 +204,7 @@ void gen(Node *node) {
                 if (node->type->kind == TY_CHAR) {
                     printf("  movsx rax, byte ptr [rax]\n");
                 } else {
+                    // Load full 8 bytes for locals (int/pointer)
                     printf("  mov rax, [rax]\n");
                 }
                 printf("  push rax\n");
@@ -214,6 +215,8 @@ void gen(Node *node) {
             printf("  pop rax\n");
             if (node->type && node->type->kind == TY_CHAR) {
                 printf("  movsx rax, byte ptr [rax]\n");
+            } else if (node->type && node->type->kind == TY_INT) {
+                printf("  movsxd rax, dword ptr [rax]\n");
             } else {
                 printf("  mov rax, [rax]\n");
             }
@@ -226,6 +229,8 @@ void gen(Node *node) {
                 Type *type = get_type_from_node(node);
                 if (type && type->kind == TY_CHAR) {
                     printf("  movsx rax, byte ptr [rax]\n");
+                } else if (type && type->kind == TY_INT) {
+                    printf("  movsxd rax, dword ptr [rax]\n");
                 } else {
                     printf("  mov rax, [rax]\n");
                 }
@@ -237,10 +242,27 @@ void gen(Node *node) {
             gen(node->rhs);
             printf("  pop rdi\n");
             printf("  pop rax\n");
-            {
+            if (node->lhs->kind == ND_LVAR) {
+                if (node->lhs->type && node->lhs->type->kind == TY_CHAR) {
+                    printf("  mov [rax], dil\n");
+                } else {
+                    // Store full 8 bytes for local scalars (int/pointer)
+                    printf("  mov [rax], rdi\n");
+                }
+            } else if (node->lhs->kind == ND_GLOBAL_VAR) {
+                if (node->lhs->type && node->lhs->type->kind == TY_CHAR) {
+                    printf("  mov [rax], dil\n");
+                } else if (node->lhs->type && node->lhs->type->kind == TY_INT) {
+                    printf("  mov dword ptr [rax], edi\n");
+                } else {
+                    printf("  mov [rax], rdi\n");
+                }
+            } else {
                 Type *type = get_type_from_node(node->lhs);
                 if (type && type->kind == TY_CHAR) {
                     printf("  mov [rax], dil\n");
+                } else if (type && type->kind == TY_INT) {
+                    printf("  mov dword ptr [rax], edi\n");
                 } else {
                     printf("  mov [rax], rdi\n");
                 }
@@ -266,6 +288,8 @@ void gen(Node *node) {
                 Type *type = get_type_from_node(node);
                 if (type && type->kind == TY_CHAR) {
                     printf("  movsx rax, byte ptr [rax]\n");
+                } else if (type && type->kind == TY_INT) {
+                    printf("  movsxd rax, dword ptr [rax]\n");
                 } else {
                     printf("  mov rax, [rax]\n");
                 }
