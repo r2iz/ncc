@@ -136,6 +136,24 @@ Token *tokenize(char *p) {
             continue;
         }
 
+        if (strncmp(p, "//", 2) == 0) {
+            p += 2;
+            while (*p && *p != '\n') p++;
+            continue;
+        }
+
+        if (strncmp(p, "/*", 2) == 0) {
+            p += 2;
+            while (*p && (p[0] != '*' || p[1] != '/')) {
+                if (*p == '\n') {
+                    error_at(p, "コメントが閉じられていません");
+                }
+                p++;
+            }
+            if (*p) p += 2;
+            continue;
+        }
+
         int len;
         if (is_keyword(p, &len)) {
             cur = new_token(TK_RESERVED, cur, p, len);

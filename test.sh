@@ -133,4 +133,8 @@ assert 0 "char g; int main() { return g; }"
 assert 120 "char g; int main() { g='x'; return g; }"
 assert 3 "char g[3]; int main() { g[0]='a'; g[1]='b'; g[2]='c'; return sizeof(g); }"
 
+assert 0 "// comment
+int main() { return 0; }"
+
+
 echo OK
