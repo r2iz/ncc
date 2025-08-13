@@ -88,9 +88,10 @@ struct Token {
 
 extern char *user_input;
 extern Token *token;
+extern char *filename;
 
 void error(char *fmt, ...);
-void error_at(char *cur, char *fmt, ...);
+void error_at(char *loc, char *fmt, ...);
 
 bool consume(char *op);
 Token *consume_ident();

@@ -1,5 +1,7 @@
 #include "ncc.h"
 
+char *filename;
+
 char *read_file(char *path) {
     FILE *fp = fopen(path, "r");
     if (!fp) error("cannot open %s: %s", path, strerror(errno));
@@ -29,6 +31,7 @@ int main(int argc, char **argv) {
         error("Usage: %s <source file>", argv[0]);
         return 1;
     }
+    filename = argv[1];
     user_input = read_file(argv[1]);
     if (!user_input) {
         error("Failed to read file: %s", argv[1]);

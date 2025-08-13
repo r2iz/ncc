@@ -15,12 +15,32 @@ void error_at(char *loc, char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
 
-    int pos = loc - user_input;
-    fprintf(stderr, "%s\n", user_input);
-    fprintf(stderr, "%*s", pos, " ");
-    fprintf(stderr, "^ ");
+    int lineno = 1;
+    int col = 1;
+    for (char *p = user_input; p < loc; p++) {
+        if (*p == '\n') {
+            lineno++;
+            col = 1;
+        } else {
+            col++;
+        }
+    }
+
+    char *line_start = loc;
+    while (line_start > user_input && line_start[-1] != '\n') line_start--;
+
+    char *line_end = loc;
+    while (*line_end != '\n' && *line_end != '\0') line_end++;
+
+    fprintf(stderr, "\e[1;31merror:\e[0m %s:%d:%d: ", filename, lineno, col);
+    fprintf(stderr, "\e[1;33m");
     vfprintf(stderr, fmt, ap);
-    fprintf(stderr, "\n");
+    fprintf(stderr, "\e[0m\n");
+
+    fprintf(stderr, "%.*s\n", (int)(line_end - line_start), line_start);
+
+    int pos = loc - line_start;
+    fprintf(stderr, "%*s\e[1;31m^\e[0m\n", pos, "");
     exit(1);
 }
 
