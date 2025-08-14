@@ -8,6 +8,8 @@ static Node *parse_function_definition(Token *name_token) {
     }
     expect("(");
 
+    clear_locals();
+
     Node *func = calloc(1, sizeof(Node));
     func->kind = ND_FUNCDEF;
     func->func_name = strndup_safe(tok->str, tok->len);
@@ -24,7 +26,11 @@ static Node *parse_function_definition(Token *name_token) {
                 error_at(token->str, "引数名が必要です");
             }
 
+            fprintf(stderr, "param: %d, %d | offset: %d", param_tok->len,
+                    param_type->size, get_current_offset());
+
             create_lvar(param_tok->str, param_tok->len, param_type);
+            fprintf(stderr, "-> %d\n", get_current_offset());
             func->paramc++;
         } while (consume(","));
         expect(")");

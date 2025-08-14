@@ -9,6 +9,7 @@ static const char *arg_regs[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 static void gen_control_flow(Node *node);
 
 static void emit_prologue(int stack_size) {
+    printf("# emit_prologue: stack_size=%d\n", stack_size);
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
     if (stack_size > 0) {
@@ -17,13 +18,16 @@ static void emit_prologue(int stack_size) {
 }
 
 static void emit_epilogue() {
+    printf("# emit_epilogue\n");
     printf("  mov rsp, rbp\n");
     printf("  pop rbp\n");
     printf("  ret\n");
 }
 
 static void emit_function_args(int argc) {
+    printf("# emit_function_args: %d\n", argc);
     for (int i = 0; i < argc; i++) {
+        printf("# emit_function_args: %s\n", arg_regs[i]);
         printf("  mov rax, rbp\n");
         printf("  sub rax, %d\n", 8 * (i + 1));
         printf("  mov [rax], %s\n", arg_regs[i]);
@@ -31,52 +35,66 @@ static void emit_function_args(int argc) {
 }
 
 static void emit_function_call(char *func_name, int argc) {
+    printf("# emit_function_call");
     for (int i = 0; i < argc; i++) {
+        printf("# emit_function_call: %s, %d\n", func_name, argc);
         printf("  pop %s\n", arg_regs[i]);
     }
+    printf("# emit_function_call: return address\n");
+    printf("  mov rax, 0\n");
     printf("  call %s\n", func_name);
     printf("  push rax\n");
 }
 
 static void emit_binary_op(NodeKind kind) {
+    printf("# emit_binary_op\n");
     printf("  pop rdi\n");
     printf("  pop rax\n");
 
     switch (kind) {
         case ND_ADD:
+            printf("# ND_ADD\n");
             printf("  add rax, rdi\n");
             break;
         case ND_SUB:
+            printf("# ND_SUB\n");
             printf("  sub rax, rdi\n");
             break;
         case ND_MUL:
+            printf("# ND_MUL\n");
             printf("  imul rax, rdi\n");
             break;
         case ND_DIV:
+            printf("# ND_DIV\n");
             printf("  cqo\n");
             printf("  idiv rdi\n");
             break;
         case ND_PERCENT:
+            printf("# ND_PERCENT\n");
             printf("  cqo\n");
             printf("  idiv rdi\n");
             printf("  mov rax, rdx\n");
             break;
         case ND_EQ:
+            printf("# ND_EQ\n");
             printf("  cmp rax, rdi\n");
             printf("  sete al\n");
             printf("  movzb rax, al\n");
             break;
         case ND_NE:
+            printf("# ND_NE\n");
             printf("  cmp rax, rdi\n");
             printf("  setne al\n");
             printf("  movzb rax, al\n");
             break;
         case ND_LT:
+            printf("# ND_LT\n");
             printf("  cmp rax, rdi\n");
             printf("  setl al\n");
             printf("  movzb rax, al\n");
             break;
         case ND_LE:
+            printf("# ND_LE\n");
             printf("  cmp rax, rdi\n");
             printf("  setle al\n");
             printf("  movzb rax, al\n");
@@ -89,13 +107,16 @@ static void emit_binary_op(NodeKind kind) {
 }
 
 void gen_addr(Node *node) {
+    printf("# gen_addr: node kind=%d\n", node->kind);
     if (node->kind == ND_LVAR) {
+        printf("# ND_LVAR\n");
         printf("  mov rax, rbp\n");
         printf("  sub rax, %d\n", node->offset);
         printf("  push rax\n");
         return;
     }
     if (node->kind == ND_STR) {
+        printf("# ND_STR\n");
         if (!node->str_label) {
             char buf[32];
             snprintf(buf, sizeof(buf), ".L.str.%d", str_label_count++);
@@ -120,13 +141,17 @@ void gen_addr(Node *node) {
         return;
     }
     if (node->kind == ND_DEREF) {
+        printf("# ND_DEREF\n");
         gen(node->lhs);
         return;
     }
     if (node->kind == ND_INDEX) {
+        printf("# ND_INDEX\n");
         // base address
+        printf("# ND_INDEX: gen_addr lhs\n");
         gen_addr(node->lhs);
         // calculate index
+        printf("# ND_INDEX: gen_addr rhs\n");
         gen(node->rhs);
         printf("  pop rdi\n");
         printf("  pop rax\n");
@@ -137,12 +162,14 @@ void gen_addr(Node *node) {
         int elem_size = size_of(elem_type);
 
         // calculate index * elem_size
+        printf("# ND_INDEX: calculating address\n");
         printf("  imul rdi, %d\n", elem_size);
         printf("  add rax, rdi\n");
         printf("  push rax\n");
         return;
     }
     if (node->kind == ND_GLOBAL_VAR) {
+        printf("# ND_GLOBAL_VAR\n");
         printf("  lea rax, %s[rip]\n", node->var_name);
         printf("  push rax\n");
         return;
@@ -156,6 +183,7 @@ void gen(Node *node) {
 
     switch (node->kind) {
         case ND_FUNCDEF: {
+            printf("# ND_FUNCDEF: %s\n", node->func_name);
             printf(".text\n");
             printf(".global %s\n", node->func_name);
             printf("%s:\n", node->func_name);
@@ -166,6 +194,7 @@ void gen(Node *node) {
             in_function = true;
 
             for (Node *n = node->func_body; n; n = n->next) {
+                printf("# ND_FUNCDEF: gen body\n");
                 gen(n);
             }
 
@@ -175,10 +204,13 @@ void gen(Node *node) {
             return;
         }
         case ND_NUM:
+            printf("# ND_NUM: %d\n", node->val);
             printf("  push %d\n", node->val);
             return;
         case ND_STR: {
+            printf("# ND_STR: %s\n", node->str_lit);
             if (!node->str_label) {
+                printf("# ND_STR: generating label\n");
                 char buf[32];
                 snprintf(buf, sizeof(buf), ".L.str.%d", str_label_count++);
                 node->str_label = strndup_safe(buf, strlen(buf));
@@ -202,108 +234,138 @@ void gen(Node *node) {
             return;
         }
         case ND_LVAR:
+            printf("# ND_LVAR: %s\n", node->var_name);
             if (node->type->kind == TY_ARRAY) {
+                printf("# ND_LVAR: array\n");
                 gen_addr(node);
             } else {
+                printf("# ND_LVAR: scalar\n");
                 gen_addr(node);
                 printf("  pop rax\n");
                 if (node->type->kind == TY_CHAR) {
+                    printf("# ND_LVAR: char\n");
                     printf("  movsx rax, byte ptr [rax]\n");
                 } else {
-                    // Load full 8 bytes for locals (int/pointer)
+                    printf("# ND_LVAR: int/pointer\n");
                     printf("  mov rax, [rax]\n");
                 }
                 printf("  push rax\n");
             }
             return;
         case ND_GLOBAL_VAR:
+            printf("# ND_GLOBAL_VAR: %s\n", node->var_name);
             gen_addr(node);
             printf("  pop rax\n");
             if (node->type && node->type->kind == TY_CHAR) {
+                printf("# ND_GLOBAL_VAR: char\n");
                 printf("  movsx rax, byte ptr [rax]\n");
             } else if (node->type && node->type->kind == TY_INT) {
+                printf("# ND_GLOBAL_VAR: int\n");
                 printf("  movsxd rax, dword ptr [rax]\n");
             } else {
+                printf("# ND_GLOBAL_VAR: pointer\n");
                 printf("  mov rax, [rax]\n");
             }
             printf("  push rax\n");
             return;
         case ND_INDEX:
+            printf("# ND_INDEX\n");
             gen_addr(node);
             printf("  pop rax\n");
             {
                 Type *type = get_type_from_node(node);
                 if (type && type->kind == TY_CHAR) {
+                    printf("# ND_INDEX: char\n");
                     printf("  movsx rax, byte ptr [rax]\n");
                 } else if (type && type->kind == TY_INT) {
+                    printf("# ND_INDEX: int\n");
                     printf("  movsxd rax, dword ptr [rax]\n");
                 } else {
+                    printf("# ND_INDEX: pointer\n");
                     printf("  mov rax, [rax]\n");
                 }
             }
             printf("  push rax\n");
             return;
         case ND_COMMA:
+            printf("# ND_COMMA\n");
             gen(node->lhs);
             printf("  pop rax\n");
             gen(node->rhs);
             return;
         case ND_ASSIGN:
+            printf("# ND_ASSIGN: %s\n", node->lhs->var_name);
             gen_addr(node->lhs);
             gen(node->rhs);
             printf("  pop rdi\n");
             printf("  pop rax\n");
             if (node->lhs->kind == ND_LVAR) {
                 if (node->lhs->type && node->lhs->type->kind == TY_CHAR) {
+                    printf("# ND_ASSIGN: char\n");
                     printf("  mov [rax], dil\n");
                 } else {
-                    // Store full 8 bytes for local scalars (int/pointer)
+                    printf("# ND_ASSIGN: int/pointer\n");
                     printf("  mov [rax], rdi\n");
                 }
             } else if (node->lhs->kind == ND_GLOBAL_VAR) {
                 if (node->lhs->type && node->lhs->type->kind == TY_CHAR) {
+                    printf("# ND_ASSIGN: global char\n");
                     printf("  mov [rax], dil\n");
                 } else if (node->lhs->type && node->lhs->type->kind == TY_INT) {
+                    printf("# ND_ASSIGN: global int\n");
                     printf("  mov dword ptr [rax], edi\n");
                 } else {
+                    printf("# ND_ASSIGN: global pointer\n");
                     printf("  mov [rax], rdi\n");
                 }
             } else {
                 Type *type = get_type_from_node(node->lhs);
                 if (type && type->kind == TY_CHAR) {
+                    printf("# ND_ASSIGN: deref char\n");
                     printf("  mov [rax], dil\n");
                 } else if (type && type->kind == TY_INT) {
+                    printf("# ND_ASSIGN: deref int\n");
                     printf("  mov dword ptr [rax], edi\n");
                 } else {
+                    printf("# ND_ASSIGN: deref pointer\n");
                     printf("  mov [rax], rdi\n");
                 }
             }
             printf("  push rdi\n");
             return;
         case ND_RETURN:
+            printf("# ND_RETURN\n");
             if (node->lhs) {
+                printf("# ND_RETURN: gen lhs\n");
                 gen(node->lhs);
                 printf("  pop rax\n");
             }
             if (in_function) {
+                printf("# ND_RETURN: in function\n");
                 emit_epilogue();
             } else {
+                printf("# ND_RETURN: not in function\n");
                 printf("  jmp .Lreturn\n");
             }
             return;
         case ND_ADDR:
+            printf("# ND_ADDR\n");
             gen_addr(node->lhs);
             return;
         case ND_DEREF:
+            printf("# ND_DEREF\n");
             gen(node->lhs);
             printf("  pop rax\n");
             {
                 Type *type = get_type_from_node(node);
                 if (type && type->kind == TY_CHAR) {
+                    printf("# ND_DEREF: char\n");
                     printf("  movsx rax, byte ptr [rax]\n");
                 } else if (type && type->kind == TY_INT) {
+                    printf("# ND_DEREF: int\n");
                     printf("  movsxd rax, dword ptr [rax]\n");
                 } else {
+                    printf("# ND_DEREF: pointer\n");
                     printf("  mov rax, [rax]\n");
                 }
             }
@@ -312,6 +374,7 @@ void gen(Node *node) {
         case ND_VAR_DECL:
             return;
         case ND_SIZEOF: {
+            printf("# ND_SIZEOF\n");
             Type *type;
             if (node->type) {
                 type = node->type;
@@ -323,15 +386,18 @@ void gen(Node *node) {
             return;
         }
         case ND_EXPR_STMT:
+            printf("# ND_EXPR_STMT\n");
             gen(node->lhs);
             printf("  pop rax\n");
             return;
         case ND_BLOCK:
+            printf("# ND_BLOCK\n");
             for (Node *n = node->body; n; n = n->next) {
                 gen(n);
             }
             return;
         case ND_FUNCALL:
+            printf("# ND_FUNCALL: %s\n", node->func_name);
             for (int i = node->argc - 1; i >= 0; i--) {
                 gen(node->args[i]);
             }
@@ -340,6 +406,7 @@ void gen(Node *node) {
         case ND_IF:
         case ND_WHILE:
         case ND_FOR:
+            printf("# ND_CONTROL_FLOW: %d\n", node->kind);
             gen_control_flow(node);
             return;
         default:
@@ -354,6 +421,7 @@ void gen(Node *node) {
 static void gen_control_flow(Node *node) {
     switch (node->kind) {
         case ND_IF: {
+            printf("# ND_IF\n");
             int l_else = label_count++;
             int l_end = label_count++;
             gen(node->cond);
@@ -372,6 +440,7 @@ static void gen_control_flow(Node *node) {
             break;
         }
         case ND_WHILE: {
+            printf("# ND_WHILE\n");
             int l_begin = label_count++;
             int l_end = label_count++;
             printf(".Lbegin%d:\n", l_begin);
@@ -387,6 +456,7 @@ static void gen_control_flow(Node *node) {
             break;
         }
         case ND_FOR: {
+            printf("# ND_FOR\n");
             int l_begin = label_count++;
             int l_end = label_count++;
             if (node->init) {
