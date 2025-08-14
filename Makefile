@@ -18,6 +18,11 @@ donut: ncc
 	gcc -static -o donut donut.s
 	./donut
 
+donut-gcc: ncc
+	gcc -static -o donut_gcc donut.s
+	./donut_gcc
+
+
 .PHONY: donut
 
 .PHONY: all
