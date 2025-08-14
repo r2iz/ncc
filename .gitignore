@@ -4,3 +4,5 @@ tmp*
 a.out
 ncc
 docs/*
+donut
+donut.s

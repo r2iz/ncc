@@ -13,6 +13,15 @@ ncc: $(OBJS)
 test: ncc
 	./test/test.sh
 
+donut: ncc
+	./ncc test/donut.c > donut.s
+	gcc -static -o donut donut.s
+	./donut
+
+.PHONY: donut
+
+.PHONY: all
+
 clean:
 	rm -f ncc *.o *~ tmp*
 
