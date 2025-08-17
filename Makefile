@@ -18,6 +18,12 @@ donut: ncc
 	gcc -static -o donut donut.s
 	./donut
 
+donut-g: ncc
+	./ncc test/donut-g.c > donut_g.s
+	gcc -static -o donut_g donut_g.s
+	./donut_g
+
+
 donut-gcc: ncc
 	gcc -static -o donut_gcc donut.s
 	./donut_gcc

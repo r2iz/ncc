@@ -1,20 +1,11 @@
-// #include <stdio.h>
-// #include <string.h>
-// #include <unistd.h>
-
 char palette[13];
 
 int m(int a, int b) { return (a * b + 5000) / 10000; }
 
 void a(int* c, int* s, int d, int t) {
-    int k0;
-    int k1;
     int k;
     int l;
-    k = ((*c * d + 5000) / 10000) + ((*s * t + 5000) / 10000);
-    k0 = m(*c, d);
-    k1 = m(*s, t);
-    k = k0 - k1;
+    k = m(*c, d) - m(*s, t);
     l = m(*s, d) + m(*c, t);
     *c = k;
     *s = l;
@@ -49,7 +40,7 @@ int main() {
     int v;
     v = 0;
 
-    for (;;) {
+    for (;; a(&q, &r, s - 8, 400), a(&u, &v, s - 2, 200)) {
         memset(b, 32, 1760);
         memset(z, 0, 1760 * sizeof(q));
         int l;
@@ -59,7 +50,7 @@ int main() {
 
         int i;
         i = 0;
-        for (; i < 88;) {
+        for (; i < 88; i = i + 1, a(&p, &l, 9974 + i % 2, 714)) {
             int w;
             w = 0;
             int e;
@@ -80,21 +71,20 @@ int main() {
                 y = 12 + 15 * m(g, m(m(e, v), f) + m(t, u)) / s;
                 int o;
                 o = x + 80 * y;
-                int aa;
-                aa = 8 *
-                     (m(m(l, r) - m(m(w, q), p), u) - m(m(w, r), p) - m(l, q) -
-                      m(m(e, v), p)) /
-                     s;
+                int N;
+                N = 8 *
+                    (m(m(l, r) - m(m(w, q), p), u) - m(m(w, r), p) - m(l, q) -
+                     m(m(e, v), p)) /
+                    s;
 
                 if (y > 0) {
-                    z[o];
                     if (g > z[o]) {
                         if (22 > y) {
                             if (x > 0) {
                                 if (80 > x) {
                                     z[o] = g;
-                                    if (aa >= 1) {
-                                        b[o] = palette[aa];
+                                    if (N >= 1) {
+                                        b[o] = palette[N];
                                     } else {
                                         b[o] = palette[0];
                                     }
@@ -104,8 +94,6 @@ int main() {
                     }
                 }
             }
-            i = i + 1;
-            a(&p, &l, 9974 + i % 2, 714);
         }
         printf("\033[H");
         int k;
@@ -118,8 +106,6 @@ int main() {
             }
         }
         usleep(5 * s);
-        a(&q, &r, s - 8, 400);
-        a(&u, &v, s - 2, 200);
     }
     return 0;
 }

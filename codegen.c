@@ -10,10 +10,11 @@ static void gen_control_flow(Node *node);
 
 static void emit_prologue(int stack_size) {
     printf("# emit_prologue: stack_size=%d\n", stack_size);
+    int aligned_size = (stack_size + 15) & ~15;
     printf("  push rbp\n");
     printf("  mov rbp, rsp\n");
-    if (stack_size > 0) {
-        printf("  sub rsp, %d\n", stack_size);
+    if (aligned_size > 0) {
+        printf("  sub rsp, %d\n", aligned_size);
     }
 }
 
@@ -245,8 +246,11 @@ void gen(Node *node) {
                 if (node->type->kind == TY_CHAR) {
                     printf("# ND_LVAR: char\n");
                     printf("  movsx rax, byte ptr [rax]\n");
+                } else if (node->type->kind == TY_INT) {
+                    printf("# ND_LVAR: int\n");
+                    printf("  movsxd rax, dword ptr [rax]\n");
                 } else {
-                    printf("# ND_LVAR: int/pointer\n");
+                    printf("# ND_LVAR: pointer\n");
                     printf("  mov rax, [rax]\n");
                 }
                 printf("  push rax\n");
@@ -301,10 +305,13 @@ void gen(Node *node) {
             printf("  pop rax\n");
             if (node->lhs->kind == ND_LVAR) {
                 if (node->lhs->type && node->lhs->type->kind == TY_CHAR) {
-                    printf("# ND_ASSIGN: char\n");
+                    printf("# ND_ASSIGN: lvar char\n");
                     printf("  mov [rax], dil\n");
+                } else if (node->lhs->type && node->lhs->type->kind == TY_INT) {
+                    printf("# ND_ASSIGN: lvar int\n");
+                    printf("  mov dword ptr [rax], edi\n");
                 } else {
-                    printf("# ND_ASSIGN: int/pointer\n");
+                    printf("# ND_ASSIGN: lvar pointer\n");
                     printf("  mov [rax], rdi\n");
                 }
             } else if (node->lhs->kind == ND_GLOBAL_VAR) {
@@ -474,6 +481,7 @@ static void gen_control_flow(Node *node) {
             }
             if (node->inc) {
                 gen(node->inc);
+                printf("  pop rax\n");
             }
             printf("  jmp .Lbegin%d\n", l_begin);
             printf(".Lend%d:\n", l_end);
