@@ -233,7 +233,7 @@ Node *stmt() {
 
     Node *node = expr();
     expect(";");
-    return node;
+    return new_unary(ND_EXPR_STMT, node);
 }
 
 Node *expr() {
